@@ -12,6 +12,9 @@ class VehicleType(models.Model):
 
 # fleet/models.py
 
+
+
+
 class Vehicle(models.Model):
     STATUS_CHOICES = [
         ('AVAILABLE', 'Available'),
@@ -65,3 +68,11 @@ class DashboardNotification(models.Model):
 
     def __str__(self):
         return self.message
+    
+
+# Look for this or add it if missing inside fleet/models.py
+class Issue(models.Model):
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
+    description = models.TextField()
+    status = models.CharField(max_length=20, default='OPEN')
+    # ... other fields ...

@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDRRMO Fleet - Repairman Console</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>{{ workshop_title }} - PDRRMO</title>
     <style>
-        body { background-color: #f4f6f9; }
+        body {
+            background-color: #f0f4f8;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        .header-banner {
+            background-color: #0f2027; 
+            background: linear-gradient(to right, #203a43, #0f2027);
+            color: #ffffff;
+            padding: 2rem 0;
+        }
+        .workshop-badge {
+            background-color: #38ef7d;
+            color: #0b3c1d;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
         .hover-bg-light:hover { background-color: #f8f9fa; }
         .tracking-wider { letter-spacing: 0.05em; }
         
-        /* Layout overrides for clean horizontal alignment */
+        /* Layout overrides for clean horizontal control alignment */
         .table .form-select-sm, .table .btn-sm, .table .form-control-sm {
             height: 38px !important;
             min-height: 38px !important;
@@ -26,27 +42,40 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="header-banner shadow-sm mb-4">
         <div class="container-fluid px-4">
-            <span class="navbar-brand mb-0 h1 d-flex align-items-center gap-2 fw-bold text-uppercase tracking-wider">
-                <i class="fa-solid fa-screwdriver-wrench text-warning"></i> PDRRMO Maintenance Console
-            </span>
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-white-50 small d-none d-sm-inline">
-                    <i class="fa-solid fa-user-gear me-1"></i> Operator: <strong>{{ request.user.username }}</strong>
-                </span>
-                
-                <form method="POST" action="{% url 'custom_logout' %}" class="m-0 p-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-danger fw-bold px-3 d-flex align-items-center gap-1">
-                        <i class="fa-solid fa-power-off"></i> Logout
-                    </button>
-                </form>
+            <div class="row align-items-center">
+                <div class="col-12 col-md-8">
+                    <div class="mb-2">
+                        <span class="badge workshop-badge text-uppercase px-2.5 py-1.5 rounded-1">
+                            <i class="fa-solid fa-anchor me-1"></i> Maritime Division Panel
+                        </span>
+                    </div>
+                    <h1 class="fw-bold mb-1" style="letter-spacing: -0.5px;">{{ workshop_title }}</h1>
+                    <p class="text-white-50 mb-0 small">
+                        Operational maintenance logs, hulls, and outboard propulsion systems diagnostic queue.
+                    </p>
+                </div>
+                <div class="col-12 col-md-4 text-start text-md-end mt-3 mt-md-0">
+                    <div class="d-inline-flex align-items-center bg-dark bg-opacity-50 border border-secondary p-2 px-3 rounded-2">
+                        <div class="text-start me-3">
+                            <span class="text-white-50 d-block" style="font-size: 0.68rem;">Technician:</span>
+                            <strong class="text-warning small"><i class="fa-solid fa-helmet-safety me-1"></i> {{ user.username }}</strong>
+                        </div>
+                        <form method="POST" action="{% url 'custom_logout' %}" class="m-0 p-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger border-0 px-2" title="Sign Out">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="container-fluid p-4">
+    <div class="container-fluid px-4 mb-5">
+        
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
@@ -56,10 +85,24 @@
             {% endfor %}
         {% endif %}
 
+        <div class="card border-0 shadow-sm p-3 mb-4 rounded-3 bg-white">
+            <div class="row g-3 align-items-center">
+                <div class="col-12 col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa fa-search"></i></span>
+                        <input type="text" id="seacraftSearch" class="form-control border-start-0" placeholder="Filter by vessel name, hull ID..." onkeyup="searchVessels()">
+                    </div>
+                </div>
+                <div class="col text-end text-muted small font-monospace">
+                    Authorized Fleet Operations Only
+                </div>
+            </div>
+        </div>
+
         <div class="row g-4">
             
             <div class="col-12 col-xl-8">
-                <div class="card border-0 shadow-sm rounded-3">
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
                     <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
                         <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                             <i class="fa-solid fa-list-check text-primary"></i> Active Maintenance Workspace
@@ -72,17 +115,17 @@
                     <div class="card-body p-0">
                         <div class="table-responsive m-0">
                             <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light text-secondary text-uppercase fw-bold small" style="font-size: 0.75rem;">
-                                    <tr>
-                                        <th scope="col" class="ps-3 py-3" style="width: 20%;">Vehicle Fleet Unit</th>
+                                <thead style="background-color: #102a43; color: #ffffff;">
+                                    <tr class="small text-uppercase tracking-wider">
+                                        <th scope="col" class="ps-4 py-3" style="width: 20%;">Vessel Craft Unit</th>
                                         <th scope="col" class="py-3" style="width: 25%;">Reported Fault Description</th>
                                         <th scope="col" class="pe-3 py-3 text-end" style="width: 55%;">Resolve Action Workspace Pipeline</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="vesselTableBody">
                                     {% for issue in active_issues %}
-                                    <tr>
-                                        <td class="ps-3">
+                                    <tr class="vessel-row" data-name="{{ issue.vehicle.model_name|lower }}" data-code="{{ issue.vehicle.plate_number|lower }}">
+                                        <td class="ps-4">
                                             <span class="fw-bold text-dark d-block mb-1" style="font-size: 0.95rem;">
                                                 {{ issue.vehicle.model_name }}
                                             </span>
@@ -167,7 +210,7 @@
                                         <td colspan="3" class="text-center py-5 bg-white text-muted">
                                             <i class="fa-solid fa-circle-check fa-3x text-success bg-opacity-10 p-3 rounded-circle mb-3"></i>
                                             <h5 class="fw-bold text-dark mb-1">All Fleet Assets Operational</h5>
-                                            <p class="text-muted small mb-0">No dynamic open vehicle damages or mechanical backlogs exist inside database logs.</p>
+                                            <p class="text-muted small mb-0">No dynamic open seacraft damages or mechanical backlogs exist inside database logs.</p>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -179,25 +222,25 @@
             </div>
 
             <div class="col-12 col-xl-4">
-                <div class="card border-0 shadow-sm rounded-3">
+                <div class="card border-0 shadow-sm rounded-3 bg-white">
                     <div class="card-header bg-white py-3 border-bottom">
                         <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                             <i class="fa-solid fa-clipboard-list text-danger"></i> File Damage Report Portal
                         </h5>
                     </div>
-                    <div class="card-body p-4 bg-white rounded-bottom-3">
-                        <form method="POST" action="{% url 'land_mobile_dashboard' %}">
+                    <div class="card-body p-4 rounded-bottom-3">
+                        <form method="POST" action="{% url 'seacraft_dashboard' %}">
                             {% csrf_token %}
                             
                             <div class="mb-3">
                                 <label class="form-label text-secondary small fw-bold text-uppercase tracking-wider">Select Compromised Asset Unit</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-truck-field"></i></span>
+                                    <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-ship"></i></span>
                                     <select class="form-select" name="vehicle" style="min-height: 48px;" required>
-                                        <option value="" disabled selected hidden>Choose operational asset...</option>
+                                        <option value="" disabled selected hidden>Choose operational craft...</option>
                                         {% for vehicle in vehicles %}
                                             <option value="{{ vehicle.id }}">
-                                                🚗 {{ vehicle.model_name }} [{{ vehicle.plate_number }}] — Status: {{ vehicle.status }}
+                                                🚢 {{ vehicle.model_name }} [{{ vehicle.plate_number }}] — Status: {{ vehicle.status }}
                                             </option>
                                         {% endfor %}
                                     </select>
@@ -206,7 +249,7 @@
 
                             <div class="mb-4">
                                 <label class="form-label text-secondary small fw-bold text-uppercase tracking-wider">Defect Breakdown Profile Details</label>
-                                <textarea class="form-control font-monospace p-3 small text-dark" name="description" rows="4" placeholder="E.g., Engine oil pressure leak..." style="font-size:0.85rem;" required></textarea>
+                                <textarea class="form-control font-monospace p-3 small text-dark" name="description" rows="4" placeholder="E.g., Outboard marine engine overheating issue..." style="font-size:0.85rem;" required></textarea>
                             </div>
 
                             <button type="submit" class="btn btn-danger w-100 fw-bold py-2 shadow-sm text-uppercase tracking-wider d-flex align-items-center justify-content-center gap-2" style="min-height: 48px;">
@@ -222,45 +265,62 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    function executeManualSubmission(issueId) {
-        const actionTakenVal = document.getElementById(`ui_action_taken_${issueId}`).value;
-        const durationNum = document.getElementById(`ui_duration_num_${issueId}`).value.trim();
-        const durationUnit = document.getElementById(`ui_duration_unit_${issueId}`).value;
-        
-        const dynamicDurationStr = durationNum ? `${durationNum} ${durationUnit}` : "";
-
-        document.getElementById(`action_taken_${issueId}`).value = actionTakenVal;
-        document.getElementById(`duration_${issueId}`).value = dynamicDurationStr;
-
-        const checkedBoxes = document.querySelectorAll(`.part-checkbox-${issueId}:checked`);
-        const partsArray = Array.from(checkedBoxes).map(cb => cb.value);
-        
-        if (partsArray.length === 0) {
-            const remarks = prompt("No stock components selected. Please add maintenance remarks / actions taken:");
-            if (remarks === null) return false;
-            if (remarks.trim() === "") {
-                alert("Remarks are required when no components are replaced.");
-                return false;
-            }
-            document.getElementById(`remarks_${issueId}`).value = remarks;
+        // Real-time table searching/filtering engine logic
+        function searchVessels() {
+            const query = document.getElementById('seacraftSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('.vessel-row');
+            
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const code = row.getAttribute('data-code');
+                if (name.includes(query) || code.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
 
-        document.getElementById(`hidden_parts_${issueId}`).value = partsArray.join(',');
-        document.getElementById(`fix_form_${issueId}`).submit();
-    }
+        // Form processing script to collect UI variables and submit form natively
+        function executeManualSubmission(issueId) {
+            const actionTakenVal = document.getElementById(`ui_action_taken_${issueId}`).value;
+            const durationNum = document.getElementById(`ui_duration_num_${issueId}`).value.trim();
+            const durationUnit = document.getElementById(`ui_duration_unit_${issueId}`).value;
+            
+            const dynamicDurationStr = durationNum ? `${durationNum} ${durationUnit}` : "";
 
-    // Automatically dismiss alert messages after 4 seconds
-    document.addEventListener("DOMContentLoaded", function() {
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function(alert) {
-            setTimeout(function() {
-                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                if (bsAlert) {
-                    bsAlert.close();
+            document.getElementById(`action_taken_${issueId}`).value = actionTakenVal;
+            document.getElementById(`duration_${issueId}`).value = dynamicDurationStr;
+
+            const checkedBoxes = document.querySelectorAll(`.part-checkbox-${issueId}:checked`);
+            const partsArray = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            if (partsArray.length === 0) {
+                const remarks = prompt("No stock components selected. Please add maintenance remarks / actions taken:");
+                if (remarks === null) return false;
+                if (remarks.trim() === "") {
+                    alert("Remarks are required when no components are replaced.");
+                    return false;
                 }
-            }, 4000);
+                document.getElementById(`remarks_${issueId}`).value = remarks;
+            }
+
+            document.getElementById(`hidden_parts_${issueId}`).value = partsArray.join(',');
+            document.getElementById(`fix_form_${issueId}`).submit();
+        }
+
+        // Automatically dismiss alert messages after 4 seconds
+        document.addEventListener("DOMContentLoaded", function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    if (bsAlert) {
+                        bsAlert.close();
+                    }
+                }, 4000);
+            });
         });
-    });
     </script>
 </body>
 </html>

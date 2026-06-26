@@ -7,6 +7,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <title>PDRRMO Emergency Asset Tracking System</title>
     <style>
+        body {
+            background-color: #ebedf0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .header-banner {
+            background-color: #23272a;
+            color: #ffffff;
+            padding: 2.2rem 0;
+        }
+        .filter-btn-group .btn {
+            border-color: #ced4da;
+            color: #212529;
+            font-weight: 500;
+            padding: 0.4rem 1.2rem;
+            background-color: #ffffff;
+        }
+        .filter-btn-group .btn.active {
+            background-color: #1a365d !important;
+            border-color: #1a365d !important;
+            color: #ffffff !important;
+        }
         .filter-btn.active {
             background-color: #212529 !important;
             color: #fff !important;
@@ -31,91 +52,157 @@
             70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(25, 135, 84, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
         }
+        @keyframes pulse-red {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        .animate-pulse {
+            animation: pulse-red 1.5s infinite ease-in-out;
+        }
         .align-middle-custom td, .align-middle-custom th {
             vertical-align: middle !important;
         }
+        .tracking-wider {
+            letter-spacing: 0.05em;
+        }
+        .metrics-container {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .metrics-value {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .metrics-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #5c646c;
+            margin-top: 0.4rem;
+        }
+        .metric-divider {
+            border-right: 1px solid #e9ecef;
+        }
+        @media (max-width: 767.98px) {
+            .metric-divider {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+        }
+        .badge-inline {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.6rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            vertical-align: middle;
+        }
+        .badge-inline.available {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+        }
+        .badge-inline.maintenance {
+            background-color: #fef9e7;
+            color: #b7950b;
+        }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <div class="bg-dark text-white py-4 mb-4 shadow">
-        <div class="container text-center">
-            <span class="badge bg-danger mb-2 px-3 py-1.5 text-uppercase tracking-wider fw-bold">
-                <i class="fa-solid fa-circle-dot me-1 text-white animate-pulse"></i> Live Public Portal
-            </span>
-            <h1 class="h2 fw-bold mb-1">PDRRMO Incident Command System</h1>
-            <p class="text-muted small mb-3">
-                Real-time visibility matrix of provincial disaster response fleet capabilities, rescue crafts, and land logistics support units.
-            </p>
-            
-            <div class="d-flex justify-content-center gap-2">
-                <a href="{% url 'admin_logistic_dashboard' %}" class="btn btn-sm btn-warning fw-bold px-3">
-                    <i class="fa-solid fa-lock me-2"></i>Logistics Portal
-                </a>
-                <a href="{% url 'repairman_dashboard' %}" class="btn btn-sm btn-outline-light px-3">
-                    <i class="fa-solid fa-screwdriver-wrench me-2"></i>Mechanic Console
-                </a>
+    <div class="header-banner shadow-sm mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12 col-lg-7">
+                    <div class="mb-2">
+                        <span class="badge bg-danger text-uppercase tracking-wider fw-bold px-2 py-1.5 rounded-1" style="font-size: 0.7rem;">
+                            LIVE PUBLIC PORTAL <i class="fa-solid fa-heartbeat ms-1"></i>
+                        </span>
+                    </div>
+                    <h1 class="fw-bold mb-2" style="font-size: 2.1rem; letter-spacing: -0.5px;">PDRRMO Incident Command System</h1>
+                    <p class="text-white-50 mb-0 mb-lg-0" style="font-size: 0.92rem; line-height: 1.5;">
+                        Real-time visibility matrix of provincial disaster response fleet capabilities and active maintenance states.
+                    </p>
+                </div>
+                
+                <div class="col-12 col-lg-5 mt-3 mt-lg-0 text-start text-lg-end">
+                    <div class="d-inline-flex flex-wrap align-items-center gap-2">
+                        {% if user.is_authenticated %}
+                            <span class="text-white-50 me-1 small">
+                                <i class="fa-solid fa-circle-user text-warning me-1"></i> <strong>{{ user.username }}</strong>
+                            </span>
+                            <a href="{% url 'dashboard_redirect' %}" class="btn btn-sm btn-warning text-dark fw-bold px-3 py-1.5 rounded-1 text-uppercase small" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                Console <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                            <a href="{% url 'custom_logout' %}" class="btn btn-sm btn-outline-danger px-2 py-1.5 rounded-1" title="Sign Out">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'login' %}?next={% url 'dashboard_redirect' %}" class="btn btn-sm btn-outline-light px-3 py-1.5 rounded-1 fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                                <i class="fa-solid fa-lock me-1.5 opacity-75"></i> Secure Operator Access
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="container mb-5">
         
-        <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 mb-4 rounded-3 bg-white">
+            <div class="row g-3 align-items-center justify-content-between">
+                <div class="col-12 col-md-4">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa fa-search"></i></span>
                         <input type="text" id="assetSearchInput" class="form-control border-start-0" placeholder="Search by model name or plate..." onkeyup="filterAssetsMatrix()">
                     </div>
                 </div>
-                <div class="col-md-8 text-md-end">
-                    <div class="btn-group shadow-xs" role="group">
+                <div class="col-12 col-md-auto">
+                    <div class="btn-group filter-btn-group shadow-sm rounded-1" role="group">
                         <button type="button" class="btn btn-sm btn-outline-secondary filter-btn active" id="filter-all" onclick="filterCategory('all')">All Assets</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" id="filter-land" onclick="filterCategory('land')"><i class="fa-solid fa-truck me-1"></i> Land Fleet</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" id="filter-sea" onclick="filterCategory('sea')"><i class="fa-solid fa-ship me-1"></i> Sea Crafts</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" id="filter-land" onclick="filterCategory('land')"><i class="fa-solid fa-truck me-1.5 text-muted"></i> Land Fleet</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" id="filter-sea" onclick="filterCategory('sea')"><i class="fa-solid fa-ship me-1.5 text-muted"></i> Sea Crafts</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-3 mb-4 text-center">
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-2 bg-white">
-                    <h4 class="fw-bold mb-0 text-dark" id="count-total">0</h4>
-                    <small class="text-muted text-uppercase style-label" style="font-size: 0.7rem; font-weight: 700;">Total Fleet Units</small>
+        <div class="metrics-container shadow-sm mb-4 border-0 overflow-hidden bg-white">
+            <div class="row g-0 text-start text-md-center">
+                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0 metric-divider">
+                    <div class="metrics-value text-dark" id="count-total">0</div>
+                    <div class="metrics-label text-uppercase tracking-wider">Total Fleet Units</div>
                 </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-2 bg-white">
-                    <h4 class="fw-bold mb-0 text-success" id="count-available">0</h4>
-                    <small class="text-muted text-uppercase style-label" style="font-size: 0.7rem; font-weight: 700;">Ready Deployment</small>
+                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0 metric-divider">
+                    <div class="metrics-value text-success" id="count-available">0</div>
+                    <div class="metrics-label text-uppercase tracking-wider">Ready Deployment</div>
                 </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-2 bg-white">
-                    <h4 class="fw-bold mb-0 text-warning" id="count-maintenance">0</h4>
-                    <small class="text-muted text-uppercase style-label" style="font-size: 0.7rem; font-weight: 700;">In Maintenance</small>
+                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0 metric-divider">
+                    <div class="metrics-value" style="color: #f39c12 !important;" id="count-maintenance">0</div>
+                    <div class="metrics-label text-uppercase tracking-wider">In Maintenance</div>
                 </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm p-2 bg-white">
-                    <h4 class="fw-bold mb-0 text-danger">{{ active_issues_count }}</h4>
-                    <small class="text-muted text-uppercase style-label" style="font-size: 0.7rem; font-weight: 700;">Active Flaw Tickets</small>
+                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0">
+                    <div class="metrics-value text-danger">{{ active_flaw_count|default:"0" }}</div>
+                    <div class="metrics-label text-uppercase tracking-wider">Active Flaw Tickets</div>
                 </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm overflow-hidden">
+        <div class="card border-0 shadow-sm overflow-hidden rounded-3 bg-white">
             <div class="table-responsive">
-                <table class="table table-hover align-middle-custom mb-0 bg-white">
-                    <thead class="table-dark small text-uppercase tracking-wider">
-                        <tr>
-                            <th scope="col" class="ps-3 py-3" style="width: 60px;">Class</th>
-                            <th scope="col" class="py-3">Asset Description</th>
-                            <th scope="col" class="py-3">Registration Code</th>
-                            <th scope="col" class="py-3">Current Status</th>
-                            <th scope="col" class="pe-3 py-3">Assigned Operator</th>
+                <table class="table table-hover align-middle-custom mb-0">
+                    <thead style="background-color: #23272a; color: #ffffff;">
+                        <tr class="small text-uppercase tracking-wider">
+                            <th scope="col" class="ps-4 py-3" style="width: 8%; border: none;">Class</th>
+                            <th scope="col" class="py-3" style="width: 44%; border: none;">Asset Description</th>
+                            <th scope="col" class="py-3" style="width: 16%; border: none;">Registration Code</th>
+                            <th scope="col" class="py-3" style="width: 14%; border: none;">Current Status</th>
+                            <th scope="col" class="pe-4 py-3" style="width: 18%; border: none;">Assigned Operator</th>
                         </tr>
                     </thead>
                     <tbody id="fleetTableBody">
@@ -124,45 +211,42 @@
                             data-model="{{ vehicle.model_name|lower }}" 
                             data-plate="{{ vehicle.plate_number|lower }}"
                             data-status="{{ vehicle.status }}"
-                            data-category="{% if 'Sea' in vehicle.vehicle_type.name or 'Maritime' in vehicle.vehicle_type.name or 'Boat' in vehicle.vehicle_type.name %}sea{% else %}land{% endif %}">
+                            data-category="{% if 'Sea' in vehicle.vehicle_type.name or 'Maritime' in vehicle.vehicle_type.name or 'Boat' in vehicle.vehicle_type.name %}sea{% else %}land{% endif %}"
+                            style="border-bottom: 1px solid #f1f3f5;">
                             
-                            <td class="ps-3 text-center">
-                                <div class="rounded p-1 text-center d-inline-flex align-items-center justify-content-center
-                                    {% if vehicle.status == 'AVAILABLE' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}"
-                                    style="width: 34px; height: 34px;">
-                                    {% if 'Sea' in vehicle.vehicle_type.name or 'Maritime' in vehicle.vehicle_type.name or 'Boat' in vehicle.vehicle_type.name %}
-                                        <i class="fa-solid fa-ship"></i>
-                                    {% elif 'SUV' in vehicle.vehicle_type.name or 'Command' in vehicle.vehicle_type.name %}
-                                        <i class="fa-solid fa-car-rear"></i>
-                                    {% else %}
-                                        <i class="fa-solid fa-truck-monster"></i>
-                                    {% endif %}
-                                </div>
-                            </td>
-
-                            <td>
-                                <span class="fw-bold text-dark d-block mb-0" style="font-size: 0.95rem;">{{ vehicle.model_name }}</span>
-                                <small class="text-muted" style="font-size: 0.78rem;">{{ vehicle.vehicle_type.name }}</small>
-                            </td>
-
-                            <td>
-                                <code class="bg-light px-2 py-0.5 rounded text-dark border small fw-bold">{{ vehicle.plate_number }}</code>
-                            </td>
-
-                            <td>
-                                <div class="d-flex align-items-center gap-1.5">
-                                    <span class="status-pulse {% if vehicle.status == 'AVAILABLE' %}pulse-available{% else %}pulse-maintenance{% endif %} me-1.5"></span>
-                                    <span class="small fw-bold {% if vehicle.status == 'AVAILABLE' %}text-success{% else %}text-warning{% endif %}" style="font-size: 0.85rem;">
-                                        {{ vehicle.get_status_display }}
-                                    </span>
-                                </div>
-                            </td>
-
-                            <td class="pe-3">
-                                {% if vehicle.assigned_driver %}
-                                    <span class="small text-dark fw-medium"><i class="fa-solid fa-user-shield text-muted me-1"></i> {{ vehicle.assigned_driver }}</span>
+                            <td class="ps-4">
+                                {% if 'Sea' in vehicle.vehicle_type.name or 'Maritime' in vehicle.vehicle_type.name or 'Boat' in vehicle.vehicle_type.name %}
+                                    <i class="fa-solid fa-ship text-dark fs-5" title="Sea Craft"></i>
                                 {% else %}
-                                    <span class="text-muted small"><i class="fa-solid fa-circle-minus text-light-dark me-1"></i> <em>Standby Pool</em></span>
+                                    <i class="fa-solid fa-truck text-dark fs-5" title="Land Vehicle"></i>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="fw-bold text-dark">{{ vehicle.model_name }}</span>
+                                {% if vehicle.status == 'AVAILABLE' %}
+                                    <span class="badge-inline available"><i class="fa-solid fa-wave-square"></i> AVAILABLE</span>
+                                {% else %}
+                                    <span class="badge-inline maintenance"><i class="fa-solid fa-wrench"></i> MAINTENANCE</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <span class="font-monospace bg-light px-2 py-1 rounded text-dark border small fw-bold" style="font-size: 0.82rem;">{{ vehicle.plate_number }}</span>
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center gap-2 small fw-medium text-dark">
+                                    <span class="status-pulse {% if vehicle.status == 'AVAILABLE' %}pulse-available{% else %}pulse-maintenance{% endif %}"></span>
+                                    <span>{{ vehicle.get_status_display }}</span>
+                                </div>
+                            </td>
+
+                            <td class="pe-4">
+                                {% if vehicle.assigned_driver %}
+                                    <span class="small text-dark"><i class="fa-solid fa-user me-2 text-dark opacity-75"></i> {{ vehicle.assigned_driver }}</span>
+                                {% else %}
+                                    <span class="text-dark small"><i class="fa-solid fa-user-group me-2 text-dark opacity-75"></i> <em>Standby Pool</em></span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -181,6 +265,7 @@
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentCategoryFilter = 'all';
 
@@ -234,6 +319,5 @@
             recalculateMetrics();
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

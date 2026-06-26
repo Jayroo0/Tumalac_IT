@@ -119,8 +119,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# settings.py
 LOGIN_URL = 'login'
-# pdrrmo_fleet/settings.py
-
 LOGIN_REDIRECT_URL = 'dashboard_redirect'
-LOGOUT_REDIRECT_URL = 'homepage'  # <--- This forces a redirect to your homepage
+LOGOUT_REDIRECT_URL = 'homepage'

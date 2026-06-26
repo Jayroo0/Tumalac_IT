@@ -2,191 +2,252 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDRRMO Fleet - Repairman Console</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>Mechanic Workshop Portal - Touch Console</title>
     <style>
-        .btn, .form-select, .form-control {
-            min-height: 48px;
-            font-size: 16px !important;
+        body {
+            background-color: #f4f6f9;
         }
-        .touch-card {
-            transition: background-color 0.2s ease;
+        .hover-bg-light:hover {
+            background-color: #f8f9fa;
         }
-        .touch-item {
-            padding-top: 16px !important;
-            padding-bottom: 16px !important;
+        .tracking-wider {
+            letter-spacing: 0.05em;
         }
-        ::-webkit-scrollbar {
-            width: 10px;
+        /* Custom overrides to keep action components compact inside row cells */
+        .table .form-select-sm, 
+        .table .btn-sm {
+            min-height: 38px !important;
+            font-size: 0.8rem !important;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 5px;
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        /* FIX: Prevent dropdown clipping inside responsive tables */
+        .table-responsive {
+            /* Allows dropdowns to spill outwards if there's space */
+            overflow: visible !important; 
+        }
+        .dropdown-menu-end-custom {
+            right: 0 !important;
+            left: auto !important;
         }
     </style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-dark bg-secondary shadow-sm sticky-top py-3">
-        <div class="container-fluid px-3">
-            <a class="navbar-brand d-flex align-items-center fs-4" href="#">
-                <i class="fa-solid fa-screwdriver-wrench text-warning me-2"></i>
-                <strong>Workshop Portal</strong>
-            </a>
-            <div class="d-flex align-items-center">
-                <a href="{% url 'homepage' %}" class="btn btn-outline-light me-2 d-flex align-items-center px-3"><i class="fa fa-home me-1"></i> Home</a>
-                <form action="{% url 'logout' %}" method="post" class="m-0">
+<body>
+
+    <nav class="navbar navbar-dark bg-dark shadow-sm sticky-top">
+        <div class="container-fluid px-4">
+            <span class="navbar-brand mb-0 h1 d-flex align-items-center gap-2 fw-bold text-uppercase tracking-wider">
+                <i class="fa-solid fa-screwdriver-wrench text-warning"></i> PDRRMO Maintenance Console
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white-50 small d-none d-sm-inline">
+                    <i class="fa-solid fa-user-gear me-1"></i> Operator: <strong>{{ request.user.username }}</strong>
+                </span>
+                
+                <form method="POST" action="{% url 'logout' %}" class="m-0 p-0">
+
+                <form method="POST" action="{% url 'custom_logout' %}" class="m-0 p-0">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-dark d-flex align-items-center px-3">Logout</button>
+                        <button type="submit" class="btn btn-sm btn-danger fw-bold px-3 d-flex align-items-center gap-1">
+                            <i class="fa-solid fa-power-off"></i> Logout
+                        </button>
                 </form>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid my-4 px-3">
+    <div class="container-fluid p-4">
         <div class="row g-4">
             
-            <div class="col-xl-7 col-12">
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="fa-solid fa-screwdriver-wrench me-2 text-warning"></i>Active Maintenance Workspace
+            <div class="col-12 col-xl-8">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Active Maintenance Workspace
                         </h5>
-                        <span class="badge bg-danger text-white small px-2 py-1 fw-bold">Field Execution</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold small">
+                            {{ active_issues|length }} Queued Task Rows
+                        </span>
                     </div>
-
+                    
                     <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
-                                <thead class="table-light small text-uppercase fw-bold text-muted">
+                        <div class="table-responsive m-0">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-secondary text-uppercase fw-bold small" style="font-size: 0.75rem;">
                                     <tr>
-                                        <th class="ps-3 py-3" style="width: 200px;">Target Vehicle</th>
-                                        <th class="py-3" style="width: 220px;">Reported Fault Description</th>
-                                        <th class="pe-3 py-3 text-end">Resolution & Inventory Logistics Control</th>
+                                        <th scope="col" class="ps-3 py-3" style="width: 20%;">Vehicle Fleet Unit</th>
+                                        <th scope="col" class="py-3" style="width: 25%;">Reported Fault Description</th>
+                                        <th scope="col" class="pe-3 py-3 text-end" style="width: 55%;">Resolve Action Workspace Pipeline</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-    {% for issue in active_issues %}
-    <tr>
-        <td class="ps-3">
-            <span class="fw-bold text-dark d-block mb-0" style="font-size: 0.95rem;">{{ issue.vehicle.model_name }}</span>
-            <code class="text-secondary font-monospace bg-light border px-1.5 py-0.5 rounded small" style="font-size: 0.75rem;">
-                {{ issue.vehicle.plate_number }}
-            </code>
-        </td>
+                                    {% for issue in active_issues %}
+                                    <tr>
+                                        <td class="ps-3">
+                                            <span class="fw-bold text-dark d-block mb-1" style="font-size: 0.95rem;">
+                                                {{ issue.vehicle.model_name }}
+                                            </span>
+                                            <code class="text-secondary font-monospace bg-light border px-2 py-1 rounded small" style="font-size: 0.75rem;">
+                                                {{ issue.vehicle.plate_number }}
+                                            </code>
+                                        </td>
 
-        <td>
-            <div class="text-dark py-1 pe-2 text-wrap" style="font-size: 0.85rem;">
-                <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> {{ issue.description }}
-            </div>
-        </td>
+                                        <td>
+                                            <div class="text-dark py-1 pe-2 text-wrap" style="font-size: 0.85rem; max-width: 220px;">
+                                                <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> 
+                                                {{ issue.description }}
+                                            </div>
+                                        </td>
 
-        <td class="pe-3 text-end">
-            <form method="POST" action="." class="row gx-2 gy-2 align-items-center justify-content-end m-0">
-                {% csrf_token %}
-                <input type="hidden" name="issue_id" value="{{ issue.id }}">
-                
-                <div class="col-12 col-md-3">...</div>
+                                        <td class="pe-3">
+                                            <form method="POST" action="." id="fixForm_{{ issue.id }}" onsubmit="return handleFixSubmission(event, '{{ issue.id }}')" class="m-0">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="issue_id" value="{{ issue.id }}">
+                                                <input type="hidden" name="repairman_remarks" id="remarks_{{ issue.id }}" value="">
+                                                
+                                                <div class="d-flex align-items-center justify-content-end gap-2 text-start">
+                                                    
+                                                    <div class="input-group input-group-sm flex-grow-1" style="max-width: 175px;">
+                                                        <label class="input-group-text bg-white text-muted"><i class="fa-solid fa-gears"></i></label>
+                                                        <select class="form-select form-select-sm fw-medium text-dark" name="action_taken">
+                                                            <option value="Repaired" selected>🔧 Standard Repair</option>
+                                                            <option value="Replaced Oil">🛢️ Replaced Oil</option>
+                                                            <option value="Electrical Rewire">⚡ Electrical Fix</option>
+                                                            <option value="Tire Rotation">🛞 Tire Replaced</option>
+                                                        </select>
+                                                    </div>
 
-                <div class="col-12 col-md-3">...</div>
+                                                    <div class="input-group input-group-sm flex-grow-1" style="max-width: 190px;">
+                                                        <label class="input-group-text bg-white text-muted"><i class="fa-solid fa-clock"></i></label>
+                                                        <select class="form-select form-select-sm text-secondary fw-semibold" name="maintenance_duration">
+                                                            <option value="" selected>♾️ No Time Limit (Permanent)</option>
+                                                            <option value="1 Month">📅 1 Month Checkup</option>
+                                                            <option value="3 Months">📅 3 Months (Standard Oil)</option>
+                                                            <option value="6 Months">📅 6 Months Mid-Term</option>
+                                                            <option value="1 Year">🗓️ 1 Year Major Service</option>
+                                                        </select>
+                                                    </div>
 
-                <div class="col-12 col-md-4 text-start">
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary w-100 dropdown-toggle text-truncate d-flex align-items-center justify-content-between bg-white text-secondary py-1.5 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8rem; min-height:31px !important;">
-                            <span><i class="fa-solid fa-box-open me-1 text-muted"></i> Select Replaced Parts...</span>
-                        </button>
-                        <div class="dropdown-menu p-2 shadow-sm border" style="min-width: 280px; max-height: 220px; overflow-y: auto; font-size: 0.85rem;">
-                            {% for part in parts %}
-                                <div class="form-check py-1 px-2 rounded hover-bg-light">
-                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="consumed_part_ids" value="{{ part.id }}" id="part_{{ issue.id }}_{{ part.id }}" {% if part.quantity == 0 %}disabled{% endif %}>
-                                    <label class="form-check-label text-dark small w-100" for="part_{{ issue.id }}_{{ part.id }}">
-                                        {{ part.name }} ({{ part.quantity }} left)
-                                    </label>
-                                </div>
-                            {% empty %}
-                                <p class="text-muted small p-2 mb-0">No inventory parts available.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+                                                    <div class="dropdown flex-grow-1 position-relative" style="max-width: 185px;">
+                                                        <button class="btn btn-sm btn-outline-secondary w-100 dropdown-toggle text-truncate d-flex align-items-center justify-content-between bg-white text-secondary px-2" 
+                                                                type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-display="static" aria-expanded="false">
+                                                            <span><i class="fa-solid fa-box-open me-1 text-muted"></i> Select Parts...</span>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end-custom p-2 shadow border-secondary-subtle" style="min-width: 280px; max-height: 240px; overflow-y: auto; font-size: 0.85rem;">
+                                                            <h6 class="dropdown-header px-1 pb-1 pt-0 text-uppercase tracking-wider text-muted fw-bold" style="font-size:0.7rem;">Warehouse Components Inventory</h6>
+                                                            <hr class="dropdown-divider my-1">
+                                                            
+                                                            {% for part in parts %}
+                                                                <div class="form-check py-2 px-2 rounded hover-bg-light d-flex align-items-center">
+                                                                    <input class="form-check-input ms-0 me-2 part-checkbox-{{ issue.id }}" type="checkbox" name="consumed_part_ids" value="{{ part.id }}" id="part_{{ issue.id }}_{{ part.id }}" {% if part.quantity == 0 %}disabled{% endif %}>
+                                                                    <label class="form-check-label text-dark small w-100 cursor-pointer" for="part_{{ issue.id }}_{{ part.id }}">
+                                                                        {% if part.quantity == 0 %}
+                                                                            <span class="text-muted text-decoration-line-through">⚠️ {{ part.name }} (Out of Stock)</span>
+                                                                        {% else %}
+                                                                            <span class="fw-bold">{{ part.name }}</span> <span class="text-muted font-monospace">({{ part.quantity }} left)</span>
+                                                                        {% endif %}
+                                                                    </label>
+                                                                </div>
+                                                            {% empty %}
+                                                                <p class="text-muted small p-2 mb-0 text-center">No storage components found.</p>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
 
-                <div class="col-12 col-md-2 text-end">
-                    <button type="submit" class="btn btn-sm btn-success w-100 fw-bold py-1.5 px-2 d-flex align-items-center justify-content-center gap-1" style="font-size: 0.8rem; min-height:31px !important;">
-                        <i class="fa-solid fa-square-check"></i> Fix
-                    </button>
-                </div>
-            </form>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="3" class="text-center py-5 text-muted bg-white">
-            <i class="fa-solid fa-circle-check fa-3x text-success-subtle mb-3"></i>
-            <h5 class="fw-bold text-dark">All Fleet Assets Operational</h5>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+                                                    <button type="submit" class="btn btn-sm btn-success fw-bold px-3 d-flex align-items-center justify-content-center gap-1">
+                                                        <i class="fa-solid fa-square-check"></i> Fix
+                                                    </button>
+                                                    
+                                                </div>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-5 bg-white text-muted">
+                                            <i class="fa-solid fa-circle-check fa-3x text-success bg-opacity-10 p-3 rounded-circle mb-3"></i>
+                                            <h5 class="fw-bold text-dark mb-1">All Fleet Assets Operational</h5>
+                                            <p class="text-muted small mb-0">No dynamic open vehicle damages or mechanical backlogs exist inside database logs.</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-xl-5 col-12">
-                <div class="card border-0 shadow-sm rounded-3 mb-4">
-                    <div class="card-header bg-dark text-white py-3">
-                        <h5 class="mb-0 fw-bold d-flex align-items-center"><i class="fa fa-file-medical text-danger me-2"></i> File Damage Report</h5>
+            <div class="col-12 col-xl-4">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-danger"></i> File Damage Report Portal
+                        </h5>
                     </div>
-                    <div class="card-body p-4">
-                        <form method="POST">
+                    <div class="card-body p-4 bg-white rounded-bottom-3">
+                        <form method="POST" action=".">
                             {% csrf_token %}
+                            
                             <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Impacted Response Asset</label>
-                                <select class="form-select border-2" name="vehicle" required>
-                                    <option value="" selected disabled>Tap to select asset...</option>
-                                    {% for vehicle in vehicles %}
-                                        <option value="{{ vehicle.id }}">{{ vehicle.model_name }} [{{ vehicle.plate_number }}]</option>
-                                    {% endfor %}
-                                </select>
+                                <label class="form-label text-secondary small fw-bold text-uppercase tracking-wider">Select Compromised Asset Unit</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-truck-field"></i></span>
+                                    <select class="form-select" name="vehicle" style="min-height: 48px;" required>
+                                        <option value="" disabled selected hidden>Choose operational asset...</option>
+                                        {% for vehicle in vehicles %}
+                                            <option value="{{ vehicle.id }}">
+                                                🚗 {{ vehicle.model_name }} [{{ vehicle.plate_number }}] — Status: {{ vehicle.status }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
+
                             <div class="mb-4">
-                                <label class="form-label small fw-bold text-muted text-uppercase mb-2">Diagnostics Summary</label>
-                                <textarea class="form-control border-2" name="description" rows="3" placeholder="Tap here to describe issues..." required></textarea>
+                                <label class="form-label text-secondary small fw-bold text-uppercase tracking-wider">Defect Breakdown Profile Details</label>
+                                <textarea class="form-control font-monospace p-3 small text-dark" name="description" rows="4" placeholder="E.g., Engine oil pressure leak on primary cylinder block or thread wear on rear axles..." style="font-size:0.85rem;" required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold py-3 shadow-sm d-flex align-items-center justify-content-center fs-5">
-                                <i class="fa-solid fa-paper-plane me-2"></i> Dispatch Ticket
+
+                            <button type="submit" class="btn btn-danger w-100 fw-bold py-2 shadow-sm text-uppercase tracking-wider d-flex align-items-center justify-content-center gap-2" style="min-height: 48px;">
+                                <i class="fa-solid fa-bullhorn"></i> Dispatch Ticket Into Workspace
                             </button>
                         </form>
-                    </div>
-                </div>
-
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-dark text-white py-3">
-                        <h5 class="mb-0 fw-bold d-flex align-items-center"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Stock Components</h5>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 380px; overflow-y: auto;">
-                        <div class="list-group list-group-flush">
-                            {% for part in parts %}
-                                <div class="list-group-item touch-item d-flex justify-content-between align-items-center p-3 touch-card border-bottom">
-                                    <div class="pe-2">
-                                        <h6 class="mb-1 fw-bold text-dark">{{ part.name }}</h6>
-                                        <span class="text-muted d-block small" style="font-size:0.85rem;">{{ part.description|default:"No specs." }}</span>
-                                    </div>
-                                    <span class="badge {% if part.quantity == 0 %}bg-danger{% elif part.quantity <= 5 %}bg-warning text-dark{% else %}bg-secondary{% endif %} rounded-pill px-3 py-2 fw-bold">
-                                        {{ part.quantity }} left
-                                    </span>
-                                </div>
-                            {% empty %}
-                                <div class="text-center p-5 text-muted"><p class="mb-0 small">No warehouse components indexed.</p></div>
-                            {% endfor %}
-                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function handleFixSubmission(event, issueId) {
+        const checkedParts = document.querySelectorAll(`.part-checkbox-${issueId}:checked`);
+        
+        if (checkedParts.length === 0) {
+            const remarks = prompt("No stock components selected. Please add maintenance remarks / actions taken:");
+            
+            if (remarks === null) {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (remarks.trim() === "") {
+                alert("Remarks are required when no components are replaced.");
+                event.preventDefault();
+                return false;
+            }
+            
+            document.getElementById(`remarks_${issueId}`).value = remarks;
+        }
+        return true;
+    }
+    </script>
 </body>
 </html>

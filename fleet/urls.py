@@ -1,23 +1,19 @@
 # fleet/urls.py
 from django.urls import path
-from django.contrib.auth import views as auth_views  # Underline clears once used below!
+from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    
-    # 1. Main public dashboard homepage
+    # Main Dashboards
     path('', views.homepage, name='homepage'),
-    
-    # 2. Secure Operator Logistics Dashboard panel
     path('dashboard/staff/', views.admin_logistic_dashboard, name='admin_logistic_dashboard'),
-    
-    # 3. Touch Screen Mechanic Dashboard console
     path('dashboard/repairman/', views.repairman_dashboard, name='repairman_dashboard'),
+    path('redirect/', views.dashboard_redirect, name='dashboard_redirect'),
 
-
-    # Using auth_views here satisfies the import checker:
+    # Authentication Route Rules
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     
+    # Dual-named alias protection prevents breaking dashboard layout forms
     path('logout/', views.custom_logout, name='logout'),
-    path('redirect/', views.dashboard_redirect, name='dashboard_redirect'),
+    path('custom-logout-alias/', views.custom_logout, name='custom_logout'),
 ]

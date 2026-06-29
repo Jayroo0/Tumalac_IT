@@ -120,6 +120,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # settings.py
-LOGIN_URL = 'login'
+LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = 'dashboard_redirect'
 LOGOUT_REDIRECT_URL = 'homepage'

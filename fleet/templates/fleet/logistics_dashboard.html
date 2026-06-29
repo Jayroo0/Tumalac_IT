@@ -13,6 +13,7 @@
         .btn-orange:hover { background-color: #C2410C; color: white; }
         .btn-teal { background-color: #0EA5E9; color: white; font-weight: bold; }
         .btn-teal:hover { background-color: #0284C7; color: white; }
+        .text-orange { color: #EA580C !important; }
     </style>
 </head>
 <body>
@@ -32,7 +33,14 @@
             <div class="card-body p-0 border bg-white rounded">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-theme">
-                        <tr><th>Equipment Designation Model</th><th>Identifier Tag</th><th>Classification</th><th>Assigned Personnel Operator</th><th>Action Assignment Update</th></tr>
+                        <tr>
+                            <th>Equipment Designation Model</th>
+                            <th>Identifier Tag</th>
+                            <th>Classification</th>
+                            <th>Current Status</th>
+                            <th>Assigned Personnel Operator</th>
+                            <th style="width: 45%;">Action Assignment Update</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {% for vehicle in vehicles %}
@@ -40,15 +48,60 @@
                             <td class="fw-bold text-dark">{{ vehicle.model_name }}</td>
                             <td><code class="bg-light text-dark border px-2 py-1 rounded font-monospace">{{ vehicle.plate_number }}</code></td>
                             <td><span class="badge bg-secondary text-uppercase">{{ vehicle.vehicle_type.name }}</span></td>
-                            <td class="text-primary fw-semibold"><i class="fa-solid fa-user-tie small opacity-50"></i> {{ vehicle.assigned_driver }}</td>
+                            
                             <td>
-                                <form method="POST" class="d-flex gap-2 m-0 align-items-center">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="assign_driver">
-                                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                    <input type="text" name="driver_name" class="form-control form-control-sm" placeholder="Enter Full Operator Name" value="{{ vehicle.assigned_driver }}" required>
-                                    <button type="submit" class="btn btn-sm btn-teal text-nowrap"><i class="fa-solid fa-user-plus"></i> Assign</button>
-                                </form>
+                                {% if vehicle.status != 'DEPLOYED' %}
+    <form action="{% url 'logistics_dashboard' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="deploy_vehicle">
+        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+        <button type="submit" class="btn btn-sm btn-outline-warning text-dark fw-bold px-2">
+            <i class="fa-solid fa-truck-fast text-orange"></i> DEPLOY
+        </button>
+    </form>
+{% else %}
+    <form action="{% url 'logistics_dashboard' %}" method="post" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="return_vehicle">
+        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+        <button type="submit" class="btn btn-sm btn-outline-danger fw-bold px-2" title="Click to process return registry to depot base">
+            <i class="fa-solid fa-arrow-rotate-left"></i> RETURN TO BASE
+        </button>
+    </form>
+{% endif %}
+                            </td>
+
+                            <td class="text-primary fw-semibold">
+                                <i class="fa-solid fa-user-tie small opacity-50"></i> {{ vehicle.assigned_driver }}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <form method="POST" class="d-flex gap-1 m-0 flex-grow-1 align-items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="assign_driver">
+                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                                        <input type="text" name="driver_name" class="form-control form-control-sm" placeholder="Operator Name" value="{{ vehicle.assigned_driver }}" required>
+                                        <button type="submit" class="btn btn-sm btn-teal text-nowrap" title="Assign Operator"><i class="fa-solid fa-user-plus"></i> Set</button>
+                                    </form>
+
+                                    <div class="vr bg-secondary opacity-25" style="height: 30px;"></div>
+
+                                    {% if vehicle.status != 'DEPLOYED' %}
+                                        <form action="{% url 'logistics_dashboard' %}" method="post" class="d-inline ms-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="deploy_vehicle">
+                                            <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                                            <input type="hidden" name="destination" value="Operational Dispatch Assignment">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning text-dark fw-bold px-2 text-nowrap" title="Dispatch to Active Mission">
+                                                <i class="fa-solid fa-truck-fast text-orange"></i> DEPLOY
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge border border-secondary text-secondary bg-transparent px-2 text-nowrap">
+                                            <i class="fa-solid fa-satellite-dish"></i> IN FIELD
+                                        </span>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}

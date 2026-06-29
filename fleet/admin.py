@@ -23,14 +23,14 @@ class LogEntryAdmin(admin.ModelAdmin):
 # 3. VEHICLE TYPE CONFIGURATION
 @admin.register(VehicleType)
 class VehicleTypeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-    search_fields = ('name',)
+    list_display = ('name',)
 
 # 4. VEHICLE CONFIGURATION WITH STYLING INJECTIONS
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
-    list_display = ('model_name', 'plate_number', 'vehicle_type', 'status', 'assigned_driver')
-    list_filter = ('vehicle_type', 'status')
+    # This adds clear, scannable column tracking directly inside the admin panel
+    list_display = ('model_name', 'plate_number', 'vehicle_type', 'status', 'assigned_driver', 'driver_phone')
+    list_filter = ('status', 'vehicle_type')
     search_fields = ('model_name', 'plate_number', 'assigned_driver')
 
 # 5. USER ACCOUNTS ACTIONS SYSTEM CONTROL

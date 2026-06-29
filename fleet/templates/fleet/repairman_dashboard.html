@@ -35,19 +35,25 @@
                             <td class="fw-bold text-dark">{{ vehicle.model_name }} <span class="badge bg-secondary font-monospace text-uppercase ms-1">{{ vehicle.vehicle_type.name }}</span></td>
                             <td><code class="bg-light text-dark border px-2 py-1 rounded font-monospace">{{ vehicle.plate_number }}</code></td>
                             <td>
-                                {% if vehicle.status == 'FUNCTIONING' %}<span class="badge bg-success">⚙️ Functioning</span>
-                                {% elif vehicle.status == 'UNDER MAINTENANCE' %}<span class="badge bg-warning text-dark">🔧 Under Maintenance</span>
-                                {% else %}<span class="badge bg-danger">🚨 Out of Order</span>{% endif %}
-                            </td>
+    {% if vehicle.status|upper == 'OPERATIONAL' %}
+        <span class="badge bg-success">Operational / Ready</span>
+    {% elif vehicle.status|upper == 'MAINTENANCE' %}
+        <span class="badge bg-warning text-dark">Under Repair / Maintenance</span>
+    {% elif vehicle.status|upper == 'DEPLOYED' %}
+        <span class="badge bg-info text-dark">Deployed in Field</span>
+    {% else %}
+        <span class="badge bg-danger">Out of Order ({{ vehicle.status }})</span>
+    {% endif %}
+</td>
                             <td>
                                 <form method="POST" class="d-flex gap-2 m-0 align-items-center">
                                     {% csrf_token %}
                                     <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                    <select name="status" class="form-select form-select-sm border-secondary" style="max-width: 240px;" required>
-                                        <option value="FUNCTIONING" {% if vehicle.status == 'FUNCTIONING' %}selected{% endif %}>⚙️ Functioning</option>
-                                        <option value="UNDER MAINTENANCE" {% if vehicle.status == 'UNDER MAINTENANCE' %}selected{% endif %}>🔧 Under Maintenance</option>
-                                        <option value="OUT OF ORDER" {% if vehicle.status == 'OUT OF ORDER' %}selected{% endif %}>🚨 Out of Order</option>
-                                    </select>
+<select name="status" class="form-select form-select-sm" required>
+    <option value="OPERATIONAL" {% if vehicle.status == 'OPERATIONAL' %}selected{% endif %}>Operational</option>
+    <option value="MAINTENANCE" {% if vehicle.status == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
+    <option value="DEPLOYED" {% if vehicle.status == 'DEPLOYED' %}selected{% endif %}>Deployed</option>
+</select>
                                     <button type="submit" class="btn btn-sm btn-save"><i class="fa-solid fa-floppy-disk"></i> Commit Status</button>
                                 </form>
                             </td>

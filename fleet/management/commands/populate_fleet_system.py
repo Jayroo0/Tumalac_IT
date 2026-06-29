@@ -68,14 +68,13 @@ class Command(BaseCommand):
         truck = VehicleType.objects.create(name="TRUCK")
         ambulance = VehicleType.objects.create(name="AMBULANCE")
 
+    # snippet within fleet/management/commands/populate_fleet_system.py
         fresh_assets = [
-            {"model_name": "Mercury 250 Speedboat Alpha", "plate_number": "M-250-A1", "type": marine, "status": "FUNCTIONING", "driver": "Juan Dela Cruz"},
-            {"model_name": "Yamaha Outboard Rescue Craft B", "plate_number": "Y-RESC-B2", "type": marine, "status": "UNDER MAINTENANCE", "driver": "Antonio Bautista"},
-            {"model_name": "PDRRMO Patrol Boat Charlie", "plate_number": "PDR-PAT-C3", "type": marine, "status": "OUT OF ORDER", "driver": "None Assigned"},
-            {"model_name": "Kawasaki KLX250 Recon Bike", "plate_number": "PDR-MC-041", "type": motorcycle, "status": "FUNCTIONING", "driver": "Ramir Santos"},
-            {"model_name": "Honda CRF250 Rally Emergency", "plate_number": "PDR-MC-088", "type": motorcycle, "status": "FUNCTIONING", "driver": "Manuel Tecson"},
-            {"model_name": "Isuzu 4x4 High-Clearance Rescue Truck", "plate_number": "PDR-TRK-771", "type": truck, "status": "FUNCTIONING", "driver": "Eduardo Aquino"},
-            {"model_name": "Toyota Hiace Advance Life Support", "plate_number": "AMB-ALS-02", "type": ambulance, "status": "FUNCTIONING", "driver": "Vicente Mendoza"}
+            {"model_name": "Mercury 250 Speedboat Alpha", "plate_number": "M-250-A1", "type": marine, "status": "OPERATIONAL", "driver": "Juan Dela Cruz", "phone": "+639123456781"},
+            {"model_name": "Yamaha Outboard Rescue Craft B", "plate_number": "Y-RESC-B2", "type": marine, "status": "MAINTENANCE", "driver": "Antonio Bautista", "phone": "+639123456782"},
+            {"model_name": "PDRRMO Patrol Boat Charlie", "plate_number": "PDR-PAT-C3", "type": marine, "status": "DEPLOYED", "driver": "None Assigned", "phone": ""},
+            {"model_name": "Isuzu 4x4 High Rescue Truck", "plate_number": "PDR-TRK-771", "type": truck, "status": "OPERATIONAL", "driver": "Eduardo Aquino", "phone": "+639123456783"},
+            {"model_name": "Toyota Hiace Advance Life Support", "plate_number": "AMB-ALS-02", "type": ambulance, "status": "DEPLOYED", "driver": "Vicente Mendoza", "phone": "+639123456784"}
         ]
 
         for asset in fresh_assets:

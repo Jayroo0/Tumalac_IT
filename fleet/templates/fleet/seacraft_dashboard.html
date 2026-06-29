@@ -34,22 +34,28 @@
                         <tr>
                             <td class="fw-bold" style="color: #1A365D;"><i class="fa-solid fa-ship opacity-50 me-1"></i> {{ vehicle.model_name }}</td>
                             <td><code class="bg-light text-dark border px-2 py-1 rounded font-monospace fw-bold">{{ vehicle.plate_number }}</code></td>
+<td>
+    {% if vehicle.status|upper == 'OPERATIONAL' %}
+        <span class="badge-status-orange">Operational</span>
+    {% elif vehicle.status|upper == 'MAINTENANCE' %}
+        <span class="badge-status-blue">Maintenance</span>
+    {% else %}
+        <span class="badge-status-blue">Deployed</span>
+    {% endif %}
+</td>
                             <td>
-                                {% if vehicle.status == 'FUNCTIONING' %}<span class="badge bg-success">⚙️ Operational Ready</span>
-                                {% elif vehicle.status == 'UNDER MAINTENANCE' %}<span class="badge bg-warning text-dark">🔧 Dry Dock Refit</span>
-                                {% else %}<span class="badge bg-danger">🚨 Dead Hull</span>{% endif %}
-                            </td>
-                            <td>
-                                <form method="POST" class="d-flex gap-2 m-0 align-items-center">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                    <select name="status" class="form-select form-select-sm border-primary" style="max-width: 240px;" required>
-                                        <option value="FUNCTIONING" {% if vehicle.status == 'FUNCTIONING' %}selected{% endif %}>⚙️ Operational Ready</option>
-                                        <option value="UNDER MAINTENANCE" {% if vehicle.status == 'UNDER MAINTENANCE' %}selected{% endif %}>🔧 Dry Dock Refit</option>
-                                        <option value="OUT OF ORDER" {% if vehicle.status == 'OUT OF ORDER' %}selected{% endif %}>🚨 Dead Hull</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-commit"><i class="fa-solid fa-anchor"></i> Save Manifest</button>
-                                </form>
+                                <form action="{% url 'seacraft_dashboard' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}"> 
+    
+    <select name="status" class="form-select">
+        <option value="OPERATIONAL">Operational</option>
+        <option value="MAINTENANCE">Maintenance</option>
+        <option value="DEPLOYED">Deployed</option>
+    </select>
+    
+    <button type="submit" class="btn btn-primary btn-sm mt-2">Update Status</button>
+</form>
                             </td>
                         </tr>
                         {% endfor %}

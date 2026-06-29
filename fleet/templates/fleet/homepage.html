@@ -9,188 +9,164 @@
     
     <style>
         /* =========================================================================
-           🖥️ LARGE COMMAND CENTER SCREEN DISPLAY ENGINE
+           🖥️ LARGE COMMAND CENTER SCREEN LAYOUT ENGINE (HIGH VISIBILITY)
            ========================================================================= */
         :root {
-            --corp-navy: #0f172a;       /* Deep Slate 900 */
-            --corp-border: #94a3b8;     /* High Visibility Border Gray */
-            --corp-bg: #f8fafc;         /* Bright Clean Screen Gray */
-            --text-lead: #0f172a;       /* Ultra Dark Sharp Type */
-            --text-sub: #334155;        /* Sub-header Charcoal */
+            --brand-blue: #1a365d;       /* Deep Fleet Navy */
+            --brand-border: #cbd5e1;     /* High Contrast Border Gray */
+            --brand-bg: #f8fafc;         /* Crisp Wall-Display Light Canvas */
+            --text-main: #0f172a;        /* High-Definition Text Slate */
             
-            /* Strict Custom Asset Status Hex Tones */
-            --hex-operational: #166534; /* High-Contrast Forest Green */
-            --hex-maintenance: #991b1b; /* High-Contrast Alert Red */
-            --hex-deployed: #1e40af;    /* High-Contrast Cobalt Blue */
+            /* Status Specific Strict Hex Colors */
+            --status-op: #166534;        /* Dark Operational Green */
+            --status-op-bg: #dcfce7;     /* Light Green Pill */
+            --status-maint: #991b1b;     /* Dark Maintenance Red */
+            --status-maint-bg: #fee2e2;  /* Light Red Pill */
+            --status-dep: #1e40af;       /* Dark Deployed Blue */
+            --status-dep-bg: #dbeafe;    /* Light Blue Pill */
         }
 
         body { 
-            background-color: var(--corp-bg); 
-            color: var(--text-lead); 
+            background-color: var(--brand-bg); 
+            color: var(--text-main); 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             line-height: 1.5;
-            font-size: 1.15rem; /* Scaled up for screen layout displays */
+            font-size: 1.15rem; /* Scaled body global base for large screens */
         }
         
-        /* Premium Consolidated Top Bar */
-        .executive-topbar {
-            background-color: var(--corp-navy);
-            color: #ffffff;
-            padding: 20px 40px;
-            border-bottom: 4px solid #1e293b;
+        /* Top Navigation Header */
+        .pdrrmo-nav { 
+            background-color: var(--brand-blue); 
+            border-bottom: 5px solid #ea580c; 
+            padding: 20px 32px; 
         }
-        .corp-nav-btn {
-            background-color: #1e293b;
-            color: #f8fafc;
-            border: 2px solid #475569;
-            font-size: 0.95rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 10px 20px;
-            border-radius: 6px;
+        .nav-link-btn { 
+            background-color: var(--brand-blue); 
+            color: #ffffff; 
+            border: 2px solid #ea580c; 
+            font-weight: 700; 
+            font-size: 0.95rem; 
+            border-radius: 6px; 
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             transition: all 0.15s ease;
         }
-        .corp-nav-btn:hover {
-            background-color: #334155;
-            color: #ffffff;
-            border-color: #64748b;
+        .nav-link-btn:hover { 
+            background-color: #ea580c; 
+            color: #ffffff; 
         }
-        .corp-nav-btn.active-tab {
-            background-color: #0284c7;
-            border-color: #0284c7;
+        .nav-link-btn.active-orange { 
+            background-color: #ea580c; 
+            border-color: #ea580c; 
         }
 
-        /* MASSIVE COMMAND HUB COUNTERS */
-        .metric-strip {
-            background-color: #ffffff;
-            border-bottom: 3px solid var(--corp-border);
-            padding: 24px 40px;
+        /* MASSIVE TRACKING TICKERS FOR WALL-MOUNTS */
+        .stat-box-outline { 
+            border: 2px solid var(--brand-blue); 
+            background-color: #ffffff; 
+            border-radius: 8px; 
+            padding: 24px; 
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .metric-divider {
-            border-right: 2px solid #e2e8f0;
-            padding-right: 45px;
+        .stat-title {
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            letter-spacing: 0.08em;
         }
-        .metric-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--text-sub);
-            letter-spacing: 0.1em;
-        }
-        .metric-num {
-            font-size: 4rem; /* Massive scale for wide command center displays */
-            font-weight: 900;
-            color: var(--corp-navy);
-            line-height: 1;
+        .stat-massive-num {
+            font-size: 4.5rem; /* Huge display multiplier for wide tracking rooms */
+            font-weight: 900; 
+            line-height: 1.1;
             letter-spacing: -0.04em;
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
-        /* Unified Master Logistics Sheet Layout */
-        .logistics-sheet {
-            background-color: #ffffff;
-            border: 2px solid var(--corp-border);
-            border-radius: 6px;
+        /* Unified Grid Panel Systems */
+        .panel-container { 
+            border: 2px solid var(--brand-blue); 
+            border-radius: 8px; 
+            overflow: hidden; 
+            background-color: #ffffff; 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
-            margin-bottom: 40px;
         }
-        .sheet-header {
-            background-color: #f1f5f9;
-            border-bottom: 2px solid var(--corp-border);
-            padding: 20px 30px;
-            font-size: 1.25rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            color: var(--corp-navy);
-        }
-
-        /* Linear Industrial Rows */
-        .row-strip {
-            display: grid;
-            grid-template-columns: 3.5fr 1.5fr 1.5fr 2fr;
-            align-items: center;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e2e8f0;
-            position: relative;
-        }
-        .row-strip:last-child {
-            border-bottom: none;
-        }
-        .row-strip:hover {
-            background-color: #f8fafc;
+        .panel-heading-blue { 
+            background-color: var(--brand-blue); 
+            color: #ffffff; 
+            font-weight: 900; 
+            font-size: 1.3rem; 
+            padding: 18px 24px; 
         }
         
-        /* Data Header Strip */
-        .row-header-strip {
-            display: grid;
-            grid-template-columns: 3.5fr 1.5fr 1.5fr 2fr;
-            padding: 14px 30px;
-            background-color: #ffffff;
-            border-bottom: 3px solid #cbd5e1;
-            font-size: 0.85rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--text-sub);
-        }
-
-        /* Expanded Status Indicator Edge Pillars */
-        .status-bar-indicator {
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 8px; /* Increased width for far-away visibility */
-        }
-        .status-bar-indicator.operational { background-color: var(--hex-operational); }
-        .status-bar-indicator.maintenance { background-color: var(--hex-maintenance); }
-        .status-bar-indicator.deployed { background-color: var(--hex-deployed); }
-
-        /* Status Inline Typography Text */
-        .status-text {
-            font-size: 1rem;
-            font-weight: 800;
-            text-transform: uppercase;
+        /* High Density Table Architectures */
+        .table-pdrrmo th { 
+            background-color: #f1f5f9; 
+            color: var(--brand-blue); 
+            font-weight: 800; 
+            border-bottom: 3px solid var(--brand-blue); 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
             letter-spacing: 0.04em;
+            padding: 16px; 
         }
-        .status-text.operational { color: var(--hex-operational); }
-        .status-text.maintenance { color: var(--hex-maintenance); }
-        .status-text.deployed { color: var(--hex-deployed); }
-
-        .corp-mono {
-            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text-lead);
-            background-color: #f1f5f9;
-            padding: 4px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
+        .table-pdrrmo td { 
+            padding: 18px 16px; 
+            font-size: 1.1rem; 
+            color: var(--text-main); 
+            border-bottom: 1px solid #e2e8f0; 
+            vertical-align: middle; 
+        }
+        .table-pdrrmo tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Custom UI Elements */
+        .code-tag-blue { 
+            color: var(--text-main); 
+            font-weight: 700; 
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            background-color: #f1f5f9; 
+            border: 1px solid var(--brand-border); 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            font-size: 1rem;
             display: inline-block;
         }
 
+        /* Sharp Standardized Status Pills */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 20px;
+            letter-spacing: 0.02em;
+        }
+        .status-pill.op { background-color: var(--status-op-bg); color: var(--status-op); }
+        .status-pill.maint { background-color: var(--status-maint-bg); color: var(--status-maint); }
+        .status-pill.dep { background-color: var(--status-dep-bg); color: var(--status-dep); }
+        
         .print-header { display: none; }
 
         /* =========================================================================
-           🖨️ PRINT CONTROL ENGINE OVERRIDES
+           🖨️ STABILIZED CSS PRINT LAYOUT ENGINE OVERRIDES
            ========================================================================= */
         @media print {
-            .executive-topbar, .btn, form, .no-print, script { display: none !important; }
+            .pdrrmo-nav, .btn, form, .no-print, script { display: none !important; }
             @page { margin: 15mm; }
-            body { background: #FFFFFF !important; color: #000000 !important; font-size: 10pt !important; }
-            .print-header { display: block !important; margin-bottom: 24px; border-bottom: 2px solid #000000 !important; padding-bottom: 8px; }
-            .metric-strip { display: flex !important; flex-direction: row !important; border: 2px solid #000000 !important; margin-bottom: 20px; padding: 15px; }
-            .metric-num { font-size: 2.5rem !important; }
-            .metric-divider { border-right: 1px solid #000000 !important; padding-right: 20px; }
-            .col-xl-6 { width: 100% !important; max-width: 100% !important; margin-bottom: 24px !important; page-break-inside: avoid !important; }
-            .logistics-sheet { border: 2px solid #000000 !important; box-shadow: none !important; }
-            .status-bar-indicator { width: 4px !important; }
+            body { background: #FFFFFF !important; color: #000000 !important; font-size: 11pt !important; line-height: 1.4; }
+            .print-header { display: block !important; margin-bottom: 25px; border-bottom: 3px double var(--brand-blue) !important; padding-bottom: 12px; }
+            .row { display: flex !important; flex-wrap: wrap !important; }
+            .col-md-3 { flex: 0 0 25% !important; max-width: 25% !important; padding: 5px; box-sizing: border-box; }
+            .col-xl-6 { flex: 0 0 100% !important; max-width: 100% !important; width: 100% !important; margin-bottom: 30px !important; page-break-inside: avoid !important; }
+            .stat-massive-num { font-size: 2.5rem !important; }
+            .panel-container { border: 1px solid var(--brand-blue) !important; background: #FFFFFF !important; page-break-inside: avoid !important; }
+            .panel-heading-blue { background-color: var(--brand-blue) !important; color: #FFFFFF !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .stat-box-outline { border: 1px solid var(--brand-blue) !important; background: #FFFFFF !important; }
+            .status-pill { border: 1px solid #000000 !important; background: transparent !important; color: #000000 !important; font-weight: bold !important; }
         }
     </style>
 </head>
@@ -199,138 +175,153 @@
     <div class="print-header container-fluid">
         <div class="d-flex justify-content-between align-items-end">
             <div>
-                <h1 style="color: #000000; font-weight: 800; margin: 0; font-size: 20pt; letter-spacing: -0.02em;">PROVINCIAL DISASTER RISK REDUCTION & MANAGEMENT OFFICE</h1>
-                <p style="text-transform: uppercase; font-weight: 700; color: #475569; margin: 2px 0 0 0; font-size: 9pt;">Consolidated Fleet Logistics Manifest</p>
+                <h1 style="color: #1A365D; font-weight: 800; margin: 0; font-size: 24pt;">PDRRMO LOGISTICS OPERATIONS</h1>
+                <p style="text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color: #EA580C; margin: 0; font-size: 10pt;">Official Fleet Management Manifest Report</p>
             </div>
-            <div class="text-end">
-                <small style="font-size: 8pt; text-transform: uppercase; color: #475569; display: block;">File Print Reference</small>
-                <div id="print-date-stamp" style="font-size: 10pt; font-weight: 700;"></div>
+            <div class="text-end" style="min-width: 250px;">
+                <small class="text-secondary d-block text-uppercase fw-bold" style="font-size: 8pt;">Generated Date & Time</small>
+                <div id="print-date-stamp" class="font-monospace fw-bold" style="font-size: 10pt; color: var(--brand-blue);"></div>
             </div>
         </div>
     </div>
 
-    <header class="executive-topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-2">
-            <i class="fa-solid fa-tower-broadcast fa-lg text-light opacity-70 me-2"></i>
-            <span style="font-weight: 900; font-size: 1.35rem; letter-spacing: 0.02em;">PDRRMO COMMAND MATRIX</span>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <button onclick="window.print()" class="btn corp-nav-btn me-2" title="Export Manifest">
-                <i class="fa-solid fa-print me-1.5"></i> Print System Log
-            </button>
+    <header class="pdrrmo-nav shadow-sm">
+        <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2 text-white">
+                <i class="fa-solid fa-tower-broadcast fa-lg text-orange me-2"></i>
+                <span class="fw-bold tracking-wider fs-4" style="letter-spacing: 1px;">PDRRMO COMMAND LOGISTICS WINDOW</span>
+            </div>
             
-            <a href="{% url 'homepage' %}" class="btn corp-nav-btn active-tab me-2">Dashboard</a>
+            <div class="d-flex align-items-center gap-2">
+                <button onclick="window.print()" class="btn nav-link-btn px-3" style="border-color: #FFC107 !important; color: #FFC107 !important;" title="Print Screen Output">
+                    <i class="fa-solid fa-print"></i>
+                </button>
 
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard_portal' %}" class="btn corp-nav-btn me-2">
-                    <i class="fa-solid fa-gauge-high me-1.5"></i> Portal
-                </a>
-                <form action="{% url 'custom_logout' %}" method="post" class="d-inline m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn corp-nav-btn border-0" style="color: #fca5a5;">
-                        <i class="fa-solid fa-right-from-bracket me-1.5"></i> Exit Matrix ({{ user.username }})
-                    </button>
-                </form>
-            {% else %}
-                <a href="{% url 'dashboard_portal' %}" class="btn corp-nav-btn" style="border-color: #0284c7;">
-                    <i class="fa-solid fa-right-to-bracket me-1.5"></i> System Login
-                </a>
-            {% endif %}
+                <a href="{% url 'homepage' %}" class="btn nav-link-btn active-orange px-3">FLEET DASHBOARD</a>
+                
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard_portal' %}" class="btn nav-link-btn px-4">
+                        <i class="fa-solid fa-gauge-high text-orange me-2"></i> SYSTEM PORTAL
+                    </a>
+                    <form action="{% url 'custom_logout' %}" method="post" class="d-inline m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn nav-link-btn px-3 border-danger text-danger bg-transparent" style="border: 2px solid #dc3545 !important;">
+                            <i class="fa-solid fa-right-from-bracket me-1"></i> EXIT ({{ user.username }})
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'dashboard_portal' %}" class="btn nav-link-btn px-4" style="border-color: #38bdf8; color: #38bdf8;">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i> SYSTEM LOGIN
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </header>
 
-    <section class="metric-strip d-flex align-items-center gap-5">
-        <div class="metric-divider">
-            <div class="metric-title">Total Operational Assets</div>
-            <div class="metric-num">{{ total_count }}</div>
-        </div>
-        <div class="metric-divider">
-            <div class="metric-title" style="color: var(--hex-operational);">[ Ready / Operational ]</div>
-            <div class="metric-num" style="color: var(--hex-operational);">{{ operational_count }}</div>
-        </div>
-        <div class="metric-divider">
-            <div class="metric-title" style="color: var(--hex-maintenance);">[ Under Maintenance ]</div>
-            <div class="metric-num" style="color: var(--hex-maintenance);">{{ maintenance_count }}</div>
-        </div>
-        <div>
-            <div class="metric-title" style="color: var(--hex-deployed);">[ Field Deployment ]</div>
-            <div class="metric-num" style="color: var(--hex-deployed);">{{ deployed_count }}</div>
-        </div>
-    </section>
-
     <main class="container-fluid py-5 px-5">
+        
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="stat-box-outline" style="border-color: var(--status-op);">
+                    <div class="stat-title" style="color: var(--status-op);"><i class="fa-solid fa-circle-check me-2"></i>Ready / Operational</div>
+                    <div class="stat-massive-num" style="color: var(--status-op);">{{ operational_count }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-box-outline" style="border-color: var(--status-dep);">
+                    <div class="stat-title" style="color: var(--status-dep);"><i class="fa-solid fa-truck-fast me-2"></i>Deployed in Field</div>
+                    <div class="stat-massive-num" style="color: var(--status-dep);">{{ deployed_count }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-box-outline" style="border-color: var(--status-maint);">
+                    <div class="stat-title" style="color: var(--status-maint);"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Under Maintenance</div>
+                    <div class="stat-massive-num" style="color: var(--status-maint);">{{ maintenance_count }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-box-outline">
+                    <div class="stat-title" style="color: #64748b;"><i class="fa-solid fa-boxes-stacked me-2"></i>Total Registries</div>
+                    <div class="stat-massive-num" style="color: var(--brand-blue);">{{ total_count }}</div>
+                </div>
+            </div>
+        </div>
+
         <div class="row g-5">
             
             <div class="col-xl-6">
-                <div class="logistics-sheet">
-                    <div class="sheet-header d-flex justify-content-between align-items-center">
-                        <span><i class="fa-solid fa-truck-field me-3 opacity-60"></i>Land Division Registry Stream</span>
-                        <small class="badge bg-dark font-monospace px-3 py-2" style="font-size: 0.9rem;">Assets: {{ land_vehicles.count }}</small>
+                <div class="panel-container">
+                    <div class="panel-heading-blue d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-truck-monster me-3 text-orange"></i>LAND OPERATIONS DIVISION</span>
+                        <span class="badge bg-light text-dark font-monospace" style="font-size: 0.9rem; padding: 6px 12px;">REGISTRY: {{ land_vehicles.count }}</span>
                     </div>
-                    
-                    <div class="row-header-strip">
-                        <div>Model / Classification</div>
-                        <div>Plate ID</div>
-                        <div>Operational Status</div>
-                        <div>Personnel Assigned</div>
-                    </div>
-                    
-                    <div class="sheet-body">
-                        {% for vehicle in land_vehicles %}
-                        <div class="row-strip">
-                            <div class="status-bar-indicator {% if vehicle.status == 'OPERATIONAL' %}operational{% elif vehicle.status == 'MAINTENANCE' %}maintenance{% else %}deployed{% endif %}"></div>
-                            <div>
-                                <span class="fw-bold d-block text-dark mb-1" style="font-size: 1.15rem;">{{ vehicle.model_name }}</span>
-                                <small class="text-muted fw-bold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em;">{{ vehicle.vehicle_type.name }}</small>
-                            </div>
-                            <div><span class="corp-mono">{{ vehicle.plate_number }}</span></div>
-                            <div>
-                                <span class="status-text {% if vehicle.status == 'OPERATIONAL' %}operational{% elif vehicle.status == 'MAINTENANCE' %}maintenance{% else %}deployed{% endif %}">
-                                    &bull; {{ vehicle.status }}
-                                </span>
-                            </div>
-                            <div class="fw-bold text-secondary">{{ vehicle.assigned_driver }}</div>
-                        </div>
-                        {% empty %}
-                        <div class="text-center py-5 text-muted fw-bold">No entries registered under the Land Division.</div>
-                        {% endfor %}
+                    <div>
+                        <table class="table table-pdrrmo table-hover align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th>Equipment Model</th>
+                                    <th>Plate Identifier</th>
+                                    <th>Status Flag</th>
+                                    <th>Assigned Driver</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vehicle in land_vehicles %}
+                                <tr>
+                                    <td class="fw-bold text-primary">
+                                        {{ vehicle.model_name }} 
+                                        <div class="small opacity-70 fw-normal text-muted mt-0.5" style="font-size: 0.8rem;">{{ vehicle.vehicle_type.name }}</div>
+                                    </td>
+                                    <td><span class="code-tag-blue">{{ vehicle.plate_number }}</span></td>
+                                    <td>
+                                        <span class="status-pill {% if vehicle.status == 'OPERATIONAL' %}op{% elif vehicle.status == 'MAINTENANCE' %}maint{% else %}dep{% endif %}">
+                                            {{ vehicle.status }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold text-secondary">{{ vehicle.assigned_driver }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-5 fw-bold text-muted">NO LAND MOBILE ASSETS LOGGED IN MATRIX.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <div class="col-xl-6">
-                <div class="logistics-sheet">
-                    <div class="sheet-header d-flex justify-content-between align-items-center">
-                        <span><i class="fa-solid fa-ship me-3 opacity-60"></i>Maritime Division Registry Stream</span>
-                        <small class="badge bg-dark font-monospace px-3 py-2" style="font-size: 0.9rem;">Assets: {{ marine_crafts.count }}</small>
+                <div class="panel-container">
+                    <div class="panel-heading-blue d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-ship me-3 text-orange"></i>MARITIME DIVISION (SEACRAFTS)</span>
+                        <span class="badge bg-light text-dark font-monospace" style="font-size: 0.9rem; padding: 6px 12px;">REGISTRY: {{ marine_crafts.count }}</span>
                     </div>
-                    
-                    <div class="row-header-strip">
-                        <div>Seacraft Model / Variant</div>
-                        <div>Hull Identifier</div>
-                        <div>Operational Status</div>
-                        <div>Operator Assigned</div>
-                    </div>
-                    
-                    <div class="sheet-body">
-                        {% for craft in marine_crafts %}
-                        <div class="row-strip">
-                            <div class="status-bar-indicator {% if craft.status == 'OPERATIONAL' %}operational{% elif craft.status == 'MAINTENANCE' %}maintenance{% else %}deployed{% endif %}"></div>
-                            <div>
-                                <span class="fw-bold d-block text-dark mb-1" style="font-size: 1.15rem;">{{ craft.model_name }}</span>
-                                <small class="text-muted fw-bold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em;">Water Vessel Hardware</small>
-                            </div>
-                            <div><span class="corp-mono">{{ craft.plate_number }}</span></div>
-                            <div>
-                                <span class="status-text {% if craft.status == 'OPERATIONAL' %}operational{% elif craft.status == 'MAINTENANCE' %}maintenance{% else %}deployed{% endif %}">
-                                    &bull; {{ craft.status }}
-                                </span>
-                            </div>
-                            <div class="fw-bold text-secondary">{{ craft.assigned_driver }}</div>
-                        </div>
-                        {% empty %}
-                        <div class="text-center py-5 text-muted fw-bold">No entries registered under the Maritime Division.</div>
-                        {% endfor %}
+                    <div>
+                        <table class="table table-pdrrmo table-hover align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th>Equipment Model</th>
+                                    <th>Hull ID Code</th>
+                                    <th>Status Flag</th>
+                                    <th>Assigned Operator</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for craft in marine_crafts %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ craft.model_name }}</td>
+                                    <td><span class="code-tag-blue">{{ craft.plate_number }}</span></td>
+                                    <td>
+                                        <span class="status-pill {% if craft.status == 'OPERATIONAL' %}op{% elif craft.status == 'MAINTENANCE' %}maint{% else %}dep{% endif %}">
+                                            {{ craft.status }}
+                                        </span>
+                                    </td>
+                                    <td class="fw-bold text-secondary">{{ craft.assigned_driver }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-5 fw-bold text-muted">NO MARITIME LOGISTICS ASSETS LOGGED IN MATRIX.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -340,7 +331,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
             document.getElementById("print-date-stamp").innerText = new Date().toLocaleDateString("en-US", options);
         });
     </script>

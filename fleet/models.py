@@ -1,25 +1,27 @@
 from django.db import models
-from django.contrib.auth.models import User
 
 class VehicleType(models.Model):
-    name = models.CharField(max_length=50, unique=True) # e.g., "MARINE", "MOTORCYCLE", "TRUCK"
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
 
+# fleet/models.py
+
 class Vehicle(models.Model):
     STATUS_CHOICES = [
-        ('FUNCTIONING', '⚙️ Functioning'),
-        ('UNDER MAINTENANCE', '🔧 Under Maintenance'),
-        ('OUT OF ORDER', '🚨 Out of Order'),
+        ('OPERATIONAL', 'Operational'),
+        ('MAINTENANCE', 'Maintenance'),
+        ('DEPLOYED', 'Deployed'),
     ]
 
     model_name = models.CharField(max_length=100)
     plate_number = models.CharField(max_length=50, unique=True)
-    vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE, related_name='vehicles')
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='FUNCTIONING')
-    assigned_driver = models.CharField(max_length=100, blank=True, null=True, default="None Assigned")
+    vehicle_type = models.ForeignKey('VehicleType', on_delete=models.PROTECT)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OPERATIONAL')
+    assigned_driver = models.CharField(max_length=100, default='None Assigned')
+    # 🆕 Added contact field for explicit mobile dialing
+    driver_phone = models.CharField(max_length=20, default='', blank=True, help_text="e.g., +639123456789")
 
     def __str__(self):
-        return f"{self.model_name} [{self.plate_number}]"
-    
+        return f"{self.model_name} ({self.plate_number})"

@@ -2,336 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDRRMO Fleet Command Center</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>PDRRMO Emergency Asset Tracking System</title>
     <style>
-        body {
-            background-color: #ebedf0;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        .header-banner {
-            background-color: #23272a;
-            color: #ffffff;
-            padding: 2.2rem 0;
-        }
-        .filter-btn-group .btn {
-            border-color: #ced4da;
-            color: #212529;
-            font-weight: 500;
-            padding: 0.4rem 1.2rem;
-            background-color: #ffffff;
-        }
-        .filter-btn-group .btn.active {
-            background-color: #1a365d !important;
-            border-color: #1a365d !important;
-            color: #ffffff !important;
-        }
-        .filter-btn.active {
-            background-color: #212529 !important;
-            color: #fff !important;
-            border-color: #212529 !important;
-        }
-        .status-pulse {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .pulse-available {
-            background-color: #198754;
-            box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7);
-            animation: pulse-green 2s infinite;
-        }
-        .pulse-maintenance {
-            background-color: #ffc107;
-        }
-        @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(25, 135, 84, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
-        }
-        @keyframes pulse-red {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-        .animate-pulse {
-            animation: pulse-red 1.5s infinite ease-in-out;
-        }
-        .align-middle-custom td, .align-middle-custom th {
-            vertical-align: middle !important;
-        }
-        .tracking-wider {
-            letter-spacing: 0.05em;
-        }
-        .metrics-container {
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .metrics-value {
-            font-size: 2.4rem;
-            font-weight: 700;
-            line-height: 1.1;
-        }
-        .metrics-label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #5c646c;
-            margin-top: 0.4rem;
-        }
-        .metric-divider {
-            border-right: 1px solid #e9ecef;
-        }
-        @media (max-width: 767.98px) {
-            .metric-divider {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-            }
-        }
-        .badge-inline {
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            margin-left: 0.6rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            vertical-align: middle;
-        }
-        .badge-inline.available {
-            background-color: #e8f5e9;
-            color: #1b5e20;
-        }
-        .badge-inline.maintenance {
-            background-color: #fef9e7;
-            color: #b7950b;
-        }
+        body { background-color: #FFFFFF; color: #1E293B; }
+        .navbar-pdrrmo { background-color: #1A365D; border-bottom: 4px solid #EA580C; }
+        .hero-banner { background: linear-gradient(135deg, #1A365D 0%, #0F172A 100%); border-bottom: 5px solid #0EA5E9; }
+        .btn-orange { background-color: #EA580C; color: #FFFFFF; font-weight: bold; }
+        .btn-orange:hover { background-color: #C2410C; color: #FFFFFF; }
+        .btn-teal { background-color: #0EA5E9; color: #FFFFFF; font-weight: bold; }
+        .btn-teal:hover { background-color: #0284C7; color: #FFFFFF; }
+        .border-pdrrmo { border-top: 4px solid #1A365D !important; }
+        .border-orange { border-top: 4px solid #EA580C !important; }
+        .border-teal { border-top: 4px solid #0EA5E9 !important; }
+        .card-stat { border: 1px solid #E2E8F0; border-radius: 8px; background: #FFFFFF; }
     </style>
 </head>
 <body>
 
-    <div class="header-banner shadow-sm mb-4">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-12 col-lg-7">
-                    <div class="mb-2">
-                        <span class="badge bg-danger text-uppercase tracking-wider fw-bold px-2 py-1.5 rounded-1" style="font-size: 0.7rem;">
-                            LIVE PUBLIC PORTAL <i class="fa-solid fa-heartbeat ms-1"></i>
-                        </span>
+    <nav class="navbar navbar-dark navbar-pdrrmo px-4 py-2 shadow-sm">
+        <span class="navbar-brand fw-bold d-flex align-items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-warning"></i> PALAWAN PDRRMO FLEET REGISTRY
+        </span>
+        <div class="d-flex gap-2">
+            <a href="{% url 'repairman_dashboard' %}" class="btn btn-sm btn-teal"><i class="fa-solid fa-screwdriver-wrench"></i> Land Repairman Portal</a>
+            <a href="{% url 'seacraft_dashboard' %}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-ship"></i> Maritime Portal</a>
+            <a href="{% url 'logistics_dashboard' %}" class="btn btn-sm btn-orange"><i class="fa-solid fa-truck-ramp-box"></i> Logistics Depot</a>
+            <a href="/admin/" class="btn btn-sm btn-dark"><i class="fa-solid fa-lock"></i> System Admin HQ</a>
+        </div>
+    </nav>
+
+    <div class="hero-banner text-white py-4 px-4 mb-4 shadow-sm">
+        <div class="container-fluid">
+            <h1 class="fw-black mb-1">FLEET COMMAND CENTER</h1>
+            <p class="mb-0 text-light opacity-75">In Support of DRRM Public Workers Operations Logistics Matrix</p>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card card-stat border-pdrrmo p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><div class="text-muted small fw-bold">TOTAL REGISTERED ASSETS</div><h2 class="fw-bold mb-0 text-dark">{{ total_count }}</h2></div>
+                        <i class="fa-solid fa-boxes-stacked fa-2x text-secondary opacity-25"></i>
                     </div>
-                    <h1 class="fw-bold mb-2" style="font-size: 2.1rem; letter-spacing: -0.5px;">PDRRMO Incident Command System</h1>
-                    <p class="text-white-50 mb-0 mb-lg-0" style="font-size: 0.92rem; line-height: 1.5;">
-                        Real-time visibility matrix of provincial disaster response fleet capabilities and active maintenance states.
-                    </p>
                 </div>
-                
-                <div class="col-12 col-lg-5 mt-3 mt-lg-0 text-start text-lg-end">
-                    <div class="d-inline-flex flex-wrap align-items-center gap-2">
-                        {% if user.is_authenticated %}
-                            <span class="text-white-50 me-1 small">
-                                <i class="fa-solid fa-circle-user text-warning me-1"></i> <strong>{{ user.username }}</strong>
-                            </span>
-                            <a href="{% url 'dashboard_redirect' %}" class="btn btn-sm btn-warning text-dark fw-bold px-3 py-1.5 rounded-1 text-uppercase small" style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                                Console <i class="fa-solid fa-arrow-right ms-1"></i>
-                            </a>
-                            <a href="{% url 'custom_logout' %}" class="btn btn-sm btn-outline-danger px-2 py-1.5 rounded-1" title="Sign Out">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                            </a>
-                        {% else %}
-                            <a href="{% url 'login' %}?next={% url 'dashboard_redirect' %}" class="btn btn-sm btn-outline-light px-3 py-1.5 rounded-1 fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
-                                <i class="fa-solid fa-lock me-1.5 opacity-75"></i> Secure Operator Access
-                            </a>
-                        {% endif %}
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat border-success p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><div class="text-muted small fw-bold">OPERATIONAL / READY</div><h2 class="fw-bold mb-0 text-success">{{ functioning_count }}</h2></div>
+                        <i class="fa-solid fa-circle-check fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat border-orange p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><div class="text-muted small fw-bold">UNDER MAINTENANCE</div><h2 class="fw-bold mb-0 text-warning">{{ maintenance_count }}</h2></div>
+                        <i class="fa-solid fa-faucet-wrench fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat border-danger p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><div class="text-muted small fw-bold">OUT OF ORDER</div><h2 class="fw-bold mb-0 text-danger">{{ broken_count }}</h2></div>
+                        <i class="fa-solid fa-triangle-exclamation fa-2x text-danger opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header text-white py-3 d-flex justify-content-between align-items-center" style="background-color: #1A365D;">
+                        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-ship text-info"></i> Maritime Division (Seacrafts)</h5>
+                        <span class="badge bg-white text-dark fw-bold">{{ marine_crafts.count }} Units</span>
+                    </div>
+                    <div class="card-body p-0 border border-top-0 bg-white">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr><th>Equipment Asset</th><th>Hull ID Code</th><th>Status Label</th><th>Assigned Operator</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for craft in marine_crafts %}
+                                <tr>
+                                    <td class="fw-bold" style="color: #1A365D;">{{ craft.model_name }}</td>
+                                    <td><code class="font-monospace text-dark bg-light px-2 py-1 border rounded">{{ craft.plate_number }}</code></td>
+                                    <td>
+                                        {% if craft.status == 'FUNCTIONING' %}<span class="badge bg-success">Ready</span>
+                                        {% elif craft.status == 'UNDER MAINTENANCE' %}<span class="badge bg-warning text-dark">Refitting</span>
+                                        {% else %}<span class="badge bg-danger">Down</span>{% endif %}
+                                    </td>
+                                    <td><small class="text-muted"><i class="fa-solid fa-user small"></i> {{ craft.assigned_driver }}</small></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">No maritime logistics assets deployed.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header text-white py-3 d-flex justify-content-between align-items-center" style="background-color: #0EA5E9;">
+                        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-truck"></i> Land Operations Division</h5>
+                        <span class="badge bg-white text-dark fw-bold">{{ land_vehicles.count }} Units</span>
+                    </div>
+                    <div class="card-body p-0 border border-top-0 bg-white">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr><th>Equipment Asset</th><th>Plate Identifier</th><th>Status Label</th><th>Assigned Driver</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for vehicle in land_vehicles %}
+                                <tr>
+                                    <td class="fw-bold text-dark">{{ vehicle.model_name }} <span class="badge bg-secondary text-uppercase font-monospace small ms-1">{{ vehicle.vehicle_type.name }}</span></td>
+                                    <td><code class="font-monospace text-dark bg-light px-2 py-1 border rounded">{{ vehicle.plate_number }}</code></td>
+                                    <td>
+                                        {% if vehicle.status == 'FUNCTIONING' %}<span class="badge bg-success">Ready</span>
+                                        {% elif vehicle.status == 'UNDER MAINTENANCE' %}<span class="badge bg-warning text-dark">Maintenance</span>
+                                        {% else %}<span class="badge bg-danger">Down</span>{% endif %}
+                                    </td>
+                                    <td><small class="text-muted"><i class="fa-solid fa-user small"></i> {{ vehicle.assigned_driver }}</small></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">No land transportation assets deployed.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="container mb-5">
-        
-        <div class="card border-0 shadow-sm p-3 mb-4 rounded-3 bg-white">
-            <div class="row g-3 align-items-center justify-content-between">
-                <div class="col-12 col-md-4">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa fa-search"></i></span>
-                        <input type="text" id="assetSearchInput" class="form-control border-start-0" placeholder="Search by model name or plate..." onkeyup="filterAssetsMatrix()">
-                    </div>
-                </div>
-                <div class="col-12 col-md-auto">
-                    <div class="btn-group filter-btn-group shadow-sm rounded-1" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn active" id="filter-all" onclick="filterCategory('all')">All Assets</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" id="filter-land" onclick="filterCategory('land')"><i class="fa-solid fa-truck me-1.5 text-muted"></i> Land Fleet</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" id="filter-sea" onclick="filterCategory('sea')"><i class="fa-solid fa-ship me-1.5 text-muted"></i> Sea Crafts</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="metrics-container shadow-sm mb-4 border-0 overflow-hidden bg-white">
-            <div class="row g-0 text-start text-md-center">
-                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0 metric-divider">
-                    <div class="metrics-value text-dark" id="count-total">0</div>
-                    <div class="metrics-label text-uppercase tracking-wider">Total Fleet Units</div>
-                </div>
-                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0 metric-divider">
-                    <div class="metrics-value text-success" id="count-available">0</div>
-                    <div class="metrics-label text-uppercase tracking-wider">Ready Deployment</div>
-                </div>
-                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0 metric-divider">
-                    <div class="metrics-value" style="color: #f39c12 !important;" id="count-maintenance">0</div>
-                    <div class="metrics-label text-uppercase tracking-wider">In Maintenance</div>
-                </div>
-                <div class="col-12 col-md-3 py-3 ps-4 ps-md-0">
-                    <div class="metrics-value text-danger">{{ active_flaw_count|default:"0" }}</div>
-                    <div class="metrics-label text-uppercase tracking-wider">Active Flaw Tickets</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card border-0 shadow-sm overflow-hidden rounded-3 bg-white">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle-custom mb-0">
-                    <thead style="background-color: #23272a; color: #ffffff;">
-                        <tr class="small text-uppercase tracking-wider">
-                            <th scope="col" class="ps-4 py-3" style="width: 8%; border: none;">Class</th>
-                            <th scope="col" class="py-3" style="width: 44%; border: none;">Asset Description</th>
-                            <th scope="col" class="py-3" style="width: 16%; border: none;">Registration Code</th>
-                            <th scope="col" class="py-3" style="width: 14%; border: none;">Current Status</th>
-                            <th scope="col" class="pe-4 py-3" style="width: 18%; border: none;">Assigned Operator</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fleetTableBody">
-                        {% for vehicle in vehicles %}
-                        <tr class="asset-table-row"
-                            data-model="{{ vehicle.model_name|lower }}" 
-                            data-plate="{{ vehicle.plate_number|lower }}"
-                            data-status="{{ vehicle.status }}"
-                            data-category="{% if 'Sea' in vehicle.vehicle_type.name or 'Maritime' in vehicle.vehicle_type.name or 'Boat' in vehicle.vehicle_type.name %}sea{% else %}land{% endif %}"
-                            style="border-bottom: 1px solid #f1f3f5;">
-                            
-                            <td class="ps-4">
-                                {% if 'Sea' in vehicle.vehicle_type.name or 'Maritime' in vehicle.vehicle_type.name or 'Boat' in vehicle.vehicle_type.name %}
-                                    <i class="fa-solid fa-ship text-dark fs-5" title="Sea Craft"></i>
-                                {% else %}
-                                    <i class="fa-solid fa-truck text-dark fs-5" title="Land Vehicle"></i>
-                                {% endif %}
-                            </td>
-
-                            <td>
-                                <span class="fw-bold text-dark">{{ vehicle.model_name }}</span>
-                                {% if vehicle.status == 'AVAILABLE' %}
-                                    <span class="badge-inline available"><i class="fa-solid fa-wave-square"></i> AVAILABLE</span>
-                                {% else %}
-                                    <span class="badge-inline maintenance"><i class="fa-solid fa-wrench"></i> MAINTENANCE</span>
-                                {% endif %}
-                            </td>
-
-                            <td>
-                                <span class="font-monospace bg-light px-2 py-1 rounded text-dark border small fw-bold" style="font-size: 0.82rem;">{{ vehicle.plate_number }}</span>
-                            </td>
-
-                            <td>
-                                <div class="d-flex align-items-center gap-2 small fw-medium text-dark">
-                                    <span class="status-pulse {% if vehicle.status == 'AVAILABLE' %}pulse-available{% else %}pulse-maintenance{% endif %}"></span>
-                                    <span>{{ vehicle.get_status_display }}</span>
-                                </div>
-                            </td>
-
-                            <td class="pe-4">
-                                {% if vehicle.assigned_driver %}
-                                    <span class="small text-dark"><i class="fa-solid fa-user me-2 text-dark opacity-75"></i> {{ vehicle.assigned_driver }}</span>
-                                {% else %}
-                                    <span class="text-dark small"><i class="fa-solid fa-user-group me-2 text-dark opacity-75"></i> <em>Standby Pool</em></span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr id="table-empty-row">
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-warning"></i>
-                                <p class="mb-0 fw-bold">No Operational Response Assets Found</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let currentCategoryFilter = 'all';
-
-        function filterCategory(category) {
-            currentCategoryFilter = category;
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('filter-' + category).classList.add('active');
-            filterAssetsMatrix();
-        }
-
-        function filterAssetsMatrix() {
-            const searchQuery = document.getElementById('assetSearchInput').value.toLowerCase();
-            const rows = document.querySelectorAll('.asset-table-row');
-            
-            rows.forEach(row => {
-                const model = row.getAttribute('data-model');
-                const plate = row.getAttribute('data-plate');
-                const cat = row.getAttribute('data-category');
-                
-                const matchesSearch = model.includes(searchQuery) || plate.includes(searchQuery);
-                const matchesCategory = (currentCategoryFilter === 'all') || (cat === currentCategoryFilter);
-                
-                if (matchesSearch && matchesCategory) {
-                    row.style.setProperty('display', '', 'important');
-                } else {
-                    row.style.setProperty('display', 'none', 'important');
-                }
-            });
-            recalculateMetrics();
-        }
-
-        function recalculateMetrics() {
-            const rows = document.querySelectorAll('.asset-table-row');
-            let total = 0, available = 0, maintenance = 0;
-            
-            rows.forEach(row => {
-                if (row.style.display !== 'none') {
-                    total++;
-                    const status = row.getAttribute('data-status');
-                    if (status === 'AVAILABLE') available++;
-                    if (status === 'MAINTENANCE') maintenance++;
-                }
-            });
-            
-            document.getElementById('count-total').innerText = total;
-            document.getElementById('count-available').innerText = available;
-            document.getElementById('count-maintenance').innerText = maintenance;
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            recalculateMetrics();
-        });
-    </script>
-    <script>
-// Automatically dismiss alert messages on the homepage after 4 seconds
-document.addEventListener("DOMContentLoaded", function() {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-        setTimeout(function() {
-            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-            if (bsAlert) {
-                bsAlert.close();
-            }
-        }, 4000);
-    });
-});
-</script>
 </body>
 </html>

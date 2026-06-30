@@ -11,9 +11,6 @@
         .table-theme th { background-color: #0EA5E9 !important; color: white !important; }
         .btn-save { background-color: #EA580C; color: white; font-weight: bold; }
         .btn-save:hover { background-color: #C2410C; color: white; }
-        
-        /* Smooth transition for disappearing alerts */
-        .alert { transition: opacity 0.5s ease; }
     </style>
 </head>
 <body>
@@ -23,13 +20,21 @@
     </nav>
 
     <div class="container-fluid px-4">
+        
         {% if messages %}
+        <div id="floating-alert-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 450px;">
             {% for msg in messages %}
-                <div class="alert alert-success alert-dismissible fade show shadow-sm">
-                    {{ msg }}
-                    <button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-success alert-dismissible fade show shadow-lg border-0 mb-2 p-3 text-white bg-dark d-flex align-items-center justify-content-between" 
+                 role="alert" 
+                 style="border-left: 5px solid #EA580C !important; border-radius: 6px;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-warning"></i>
+                    <span class="fw-semibold font-monospace small">{{ msg }}</span>
                 </div>
+                <button type="button" class="btn-close btn-close-white m-0 p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             {% endfor %}
+        </div>
         {% endif %}
         
         <h3 class="fw-bold mb-3" style="color: #1A365D;">Land Vehicle Work Orders</h3>
@@ -37,34 +42,54 @@
             <div class="card-body p-0 border bg-white rounded">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-theme">
-                        <tr><th>Equipment Unit</th><th>Identifier Tag</th><th>Current Status</th><th>Action Diagnostic Toggle Override</th></tr>
+                        <tr>
+                            <th>Equipment Unit</th>
+                            <th>Identifier Tag</th>
+                            <th>Current Status</th>
+                            <th>Action Diagnostic Toggle Override</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {% for vehicle in vehicles %}
                         <tr>
-                            <td class="fw-bold text-dark">{{ vehicle.model_name }} <span class="badge bg-secondary font-monospace text-uppercase ms-1">{{ vehicle.vehicle_type.name }}</span></td>
+                            <td class="fw-bold text-dark">
+                                {{ vehicle.model_name }} 
+                                <span class="badge bg-secondary font-monospace text-uppercase ms-1">{{ vehicle.vehicle_type.name }}</span>
+                            </td>
                             <td><code class="bg-light text-dark border px-2 py-1 rounded font-monospace">{{ vehicle.plate_number }}</code></td>
+                            
                             <td>
-                                {% if vehicle.status|upper == 'OPERATIONAL' %}
-                                    <span class="badge bg-success">Operational / Ready</span>
-                                {% elif vehicle.status|upper == 'MAINTENANCE' %}
-                                    <span class="badge bg-warning text-dark">Under Repair / Maintenance</span>
-                                {% elif vehicle.status|upper == 'DEPLOYED' %}
-                                    <span class="badge bg-info text-dark">Deployed in Field</span>
+                                {% if vehicle.status == 'DEPLOYED' %}
+                                    <div class="border px-3 py-1.5 rounded d-inline-flex align-items-center gap-2 bg-light text-dark fw-semibold" style="min-width: 160px; height: 38px; font-size: 0.875rem;">
+                                        <span style="height: 10px; width: 10px; background-color: #0284C7; border-radius: 50%; display: inline-block;"></span>
+                                        DEPLOYED
+                                    </div>
+                                {% elif vehicle.status == 'MAINTENANCE' %}
+                                    <div class="border px-3 py-1.5 rounded d-inline-flex align-items-center gap-2 bg-light text-dark fw-semibold" style="min-width: 160px; height: 38px; font-size: 0.875rem;">
+                                        <span style="height: 10px; width: 10px; background-color: #DC2626; border-radius: 50%; display: inline-block;"></span>
+                                        MAINTENANCE
+                                    </div>
                                 {% else %}
-                                    <span class="badge bg-danger">Out of Order ({{ vehicle.status }})</span>
+                                    <div class="border px-3 py-1.5 rounded d-inline-flex align-items-center gap-2 bg-light text-dark fw-semibold" style="min-width: 160px; height: 38px; font-size: 0.875rem;">
+                                        <span style="height: 10px; width: 10px; background-color: #10B981; border-radius: 50%; display: inline-block;"></span>
+                                        OPERATIONAL
+                                    </div>
                                 {% endif %}
                             </td>
+                            
                             <td>
                                 <form method="POST" class="d-flex gap-2 m-0 align-items-center">
                                     {% csrf_token %}
                                     <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                    <select name="status" class="form-select form-select-sm" required>
+                                    
+                                    <select name="status" class="form-select form-select-sm" style="max-width: 160px; height: 38px;" required>
                                         <option value="OPERATIONAL" {% if vehicle.status == 'OPERATIONAL' %}selected{% endif %}>Operational</option>
                                         <option value="MAINTENANCE" {% if vehicle.status == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
-                                        <option value="DEPLOYED" {% if vehicle.status == 'DEPLOYED' %}selected{% endif %}>Deployed</option>
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-save"><i class="fa-solid fa-floppy-disk"></i> Commit Status</button>
+                                    
+                                    <button type="submit" class="btn btn-sm btn-save d-inline-flex align-items-center gap-1" style="height: 38px; padding-left: 15px; padding-right: 15px;">
+                                        <i class="fa-solid fa-floppy-disk"></i> Commit Status
+                                    </button>
                                 </form>
                             </td>
                         </tr>
@@ -75,20 +100,21 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const alerts = document.querySelectorAll('.alert');
-            
-            alerts.forEach(function(alert) {
-                // Wait 3 seconds before initiating fade out
+            const alertContainer = document.getElementById("floating-alert-container");
+            if (alertContainer) {
                 setTimeout(function() {
-                    alert.style.opacity = '0';
-                    // Allow 500ms CSS transition to finish, then drop from DOM layout completely
+                    alertContainer.style.transition = "all 0.5s ease";
+                    alertContainer.style.opacity = '0';
+                    alertContainer.style.transform = "translateY(20px)";
+                    
                     setTimeout(function() {
-                        alert.remove();
+                        alertContainer.remove();
                     }, 500);
                 }, 3000);
-            });
+            }
         });
     </script>
 </body>

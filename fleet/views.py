@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.admin.models import LogEntry, CHANGE, ADDITION 
 from django.contrib.contenttypes.models import ContentType          
+from django.db.models import Case, When, Value, IntegerField
 from .models import Vehicle, VehicleType, Driver  # 🟢 Added Driver model here
 
 # =========================================================================
@@ -121,18 +122,39 @@ def repairman_dashboard(request):
         messages.error(request, "Access restricted to authorized Repair Technicians.")
         return redirect('homepage')
 
+    # Line 124
     if request.method == 'POST':
         vehicle_id = request.POST.get('vehicle_id')
-        vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-        old_status = vehicle.status
         new_status = request.POST.get('status')
         
-        vehicle.status = new_status
-        vehicle.save()
-        
-        log_action_to_admin(request, vehicle, CHANGE, f"Changed status from {old_status} to {new_status} via Repair Bench.")
-        messages.success(request, f"Status updated for {vehicle.model_name} successfully!")
+        if vehicle_id and new_status:
+            vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+            
+            if new_status in ['OPERATIONAL', 'MAINTENANCE']:
+                if new_status == 'MAINTENANCE' and vehicle.assigned_driver:
+                    vehicle.assigned_driver = None
+                
+                vehicle.status = new_status
+                vehicle.save()
+                messages.success(request, f"Status for {vehicle.model_name} updated successfully.")
+            else:
+                messages.error(request, "Unauthorized status change attempted.")
+        else:
+            messages.error(request, "Missing structural data parameters.")
+            
         return redirect('repairman_dashboard')
+
+    # 2. Render Page Grid with Custom Priority Sorting (GET requests)
+    # This creates a virtual sorting weights layer: Maintenance = 1, Operational = 2, Deployed = 3
+    vehicles = Vehicle.objects.all().order_by(
+        Case(
+            When(status='MAINTENANCE', then=Value(1)),
+            When(status='OPERATIONAL', then=Value(2)),
+            default=Value(3),
+            output_field=IntegerField(),
+        ),
+        'model_name' # Secondary sorting alphabetic by name if statuses are equal
+    )
 
     vehicles = Vehicle.objects.all().exclude(vehicle_type__name__iexact='MARINE').select_related('vehicle_type', 'assigned_driver')
     return render(request, 'fleet/repairman_dashboard.html', {'vehicles': vehicles})

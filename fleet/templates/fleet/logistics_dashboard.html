@@ -39,11 +39,27 @@
     </nav>
 
     <div class="container-fluid px-4">
-        {% if messages %}
+        <!-- {% if messages %}
             {% for msg in messages %}
                 <div class="alert alert-success alert-dismissible fade show shadow-sm">{{ msg }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
             {% endfor %}
-        {% endif %}
+        {% endif %} -->
+
+        {% if messages %}
+<div id="floating-alert-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 450px;">
+    {% for msg in messages %}
+    <div class="alert alert-success alert-dismissible fade show shadow-lg border-0 mb-2 p-3 text-white bg-dark d-flex align-items-center justify-content-between" 
+         role="alert" 
+         style="border-left: 5px solid #EA580C !important; border-radius: 6px;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-circle-check text-warning"></i>
+            <span class="fw-semibold font-monospace small">{{ msg }}</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white m-0 p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
         <h3 class="fw-bold mb-4" style="color: #1A365D;">Personnel Deployment & Asset Tracking Manifest</h3>
         
@@ -246,6 +262,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
     <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+    const alertContainer = document.getElementById("floating-alert-container");
+    if (alertContainer) {
+        // Wait 3 seconds, then drop opacity and remove elements seamlessly
+        setTimeout(() => {
+            alertContainer.style.transition = "all 0.5s ease";
+            alertContainer.style.opacity = "0";
+            alertContainer.style.transform = "translateY(20px)";
+            
+            // Purge the element completely from the document tree structure 
+            setTimeout(() => {
+                alertContainer.remove();
+            }, 500); 
+        }, 3000);
+    }
+});
+
     function submitDirectAction(actionName, vehicleId) {
         const tempForm = document.createElement('form');
         tempForm.method = 'POST';

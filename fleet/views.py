@@ -187,6 +187,15 @@ def seacraft_dashboard(request):
 def logistics_dashboard(request):
     user = request.user
 
+    # 1. Find IDs of drivers currently out on the field in a deployed vehicle
+    deployed_driver_ids = Vehicle.objects.filter(
+        status='DEPLOYED', 
+        assigned_driver__isnull=False
+    ).values_list('assigned_driver_id', flat=True)
+
+    # 2. Fetch drivers: Include them ONLY if they are active AND not busy.
+    available_drivers = Driver.objects.filter(is_active=True).exclude(id__in=deployed_driver_ids)
+    
     # 🛡️ Cleaned up single unified authorization gate
     if not (user.is_staff or check_user_role(user, 'Logistics', ['log', 'depot'])):
         messages.error(request, "Access restricted to Logistics Depot management accounts.")
@@ -235,7 +244,7 @@ def logistics_dashboard(request):
             messages.success(request, f"New fleet asset '{model_name}' has been securely registered to the base depot map.")
             return redirect('logistics_dashboard')
 
-        # 🆕 ACTION D: PROCESSING INTERACTION FROM DRIVER DROPDOWN SET BUTTONS
+        # ACTION D: PROCESSING INTERACTION FROM DRIVER DROPDOWN SET BUTTONS
         elif action == 'set_driver':
             vehicle = get_object_or_404(Vehicle, id=vehicle_id)
             driver_id = request.POST.get('driver_id')
@@ -253,14 +262,22 @@ def logistics_dashboard(request):
             messages.success(request, msg)
             return redirect('logistics_dashboard')
 
-    # Fetch values ensuring fast loading via select_related lookups
-    vehicles = Vehicle.objects.all().select_related('vehicle_type', 'assigned_driver')
+    # =========================================================================
+    # 🔄 UPDATED GET WORKFLOW: SPLIT DATA INTO CHANNELS
+    # =========================================================================
+    # Optimization: Pull all records using single SQL join lookup query
+    all_vehicles = Vehicle.objects.all().select_related('vehicle_type', 'assigned_driver')
+    
+    # Filter segments matching the exact type keys used by your dashboard template panels
+    land_vehicles = all_vehicles.filter(vehicle_type__name__iexact='LAND')
+    marine_crafts = all_vehicles.filter(vehicle_type__name__iexact='MARINE')
+    
     types = VehicleType.objects.all()
-    drivers = Driver.objects.filter(is_active=True) # 🟢 Context hook for dropdown lists
     
     context = {
-        'vehicles': vehicles, 
+        'land_vehicles': land_vehicles, 
+        'marine_crafts': marine_crafts, 
         'types': types, 
-        'drivers': drivers
+        'drivers': available_drivers, # Extracted from the deployed check above
     }
     return render(request, 'fleet/logistics_dashboard.html', context)

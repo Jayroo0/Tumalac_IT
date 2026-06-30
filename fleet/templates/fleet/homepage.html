@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta http-equiv="refresh" content="10">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDRRMO Fleet Control Center</title>
@@ -343,7 +344,37 @@
 
         </div>
     </main>
+    <script>
+    // Keep track of the current deployed count on page load
+    // We grab the initial count directly from the dashboard metrics container
+    let currentDeployedCount = parseInt(document.getElementById('deployed-counter-card')?.innerText || 0);
 
+    function checkForStatusUpdates() {
+        // Fetch the latest logistics snapshot quietly in the background
+        fetch("{% url 'logistics_dashboard' %}", {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the background page to see if deployment numbers shifted
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Find your deployed counter block inside the fetched HTML
+            // Note: Make sure your metric card has id="deployed-counter-card" or similar identifier
+            const latestCount = parseInt(doc.getElementById('deployed-counter-card')?.innerText || 0);
+
+            // If a tech user or RFID sensor shifted the status, force a hard refresh
+            if (latestCount !== currentDeployedCount) {
+                window.location.reload();
+            }
+        })
+        .catch(err => console.log("Background synchronization paused..."));
+    }
+
+    // Scan for backend field updates every 5 seconds
+    setInterval(checkForStatusUpdates, 5000);
+</script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };

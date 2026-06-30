@@ -6,7 +6,14 @@ class VehicleType(models.Model):
     def __str__(self):
         return self.name
 
-# fleet/models.py
+class Driver(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    license_number = models.CharField(max_length=50, blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __clstr__(self):
+        return self.name
 
 class Vehicle(models.Model):
     STATUS_CHOICES = [
@@ -17,11 +24,11 @@ class Vehicle(models.Model):
 
     model_name = models.CharField(max_length=100)
     plate_number = models.CharField(max_length=50, unique=True)
-    vehicle_type = models.ForeignKey('VehicleType', on_delete=models.PROTECT)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OPERATIONAL')
-    assigned_driver = models.CharField(max_length=100, default='None Assigned')
-    # 🆕 Added contact field for explicit mobile dialing
-    driver_phone = models.CharField(max_length=20, default='', blank=True, help_text="e.g., +639123456789")
+    vehicle_type = models.ForeignKey('VehicleType', on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default='OPERATIONAL') # OPERATIONAL, MAINTENANCE, DEPLOYED
+    
+    # Change this from a CharField to a ForeignKey pointing to our new Driver model
+    assigned_driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='vehicles')
 
     def __str__(self):
         return f"{self.model_name} ({self.plate_number})"

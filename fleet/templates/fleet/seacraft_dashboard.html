@@ -11,6 +11,8 @@
         .table-theme th { background-color: #1A365D !important; color: white !important; }
         .btn-commit { background-color: #EA580C; color: white; font-weight: bold; }
         .btn-commit:hover { background-color: #C2410C; color: white; }
+        /* Smooth transition for auto-disappear */
+        .alert { transition: opacity 0.5s ease; }
     </style>
 </head>
 <body>
@@ -20,7 +22,14 @@
     </nav>
 
     <div class="container-fluid px-4">
-        {% if messages %}{% for msg in messages %}<div class="alert alert-success alert-dismissible fade show shadow-sm">{{ msg }}<button class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm">
+                    {{ msg }}
+                    <button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
         
         <h3 class="fw-bold mb-3" style="color: #1A365D;">Seacraft Status & Maintenance Matrix</h3>
         <div class="card shadow-sm border-0">
@@ -34,28 +43,28 @@
                         <tr>
                             <td class="fw-bold" style="color: #1A365D;"><i class="fa-solid fa-ship opacity-50 me-1"></i> {{ vehicle.model_name }}</td>
                             <td><code class="bg-light text-dark border px-2 py-1 rounded font-monospace fw-bold">{{ vehicle.plate_number }}</code></td>
-<td>
+                            <td>
     {% if vehicle.status|upper == 'OPERATIONAL' %}
-        <span class="badge-status-orange">Operational</span>
+        <span class="badge bg-success">Operational</span>
     {% elif vehicle.status|upper == 'MAINTENANCE' %}
-        <span class="badge-status-blue">Maintenance</span>
+        <span class="badge bg-warning text-dark">Maintenance</span>
     {% else %}
-        <span class="badge-status-blue">Deployed</span>
+        <span class="badge bg-info text-dark">Deployed</span>
     {% endif %}
 </td>
                             <td>
                                 <form action="{% url 'seacraft_dashboard' %}" method="post">
-    {% csrf_token %}
-    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}"> 
-    
-    <select name="status" class="form-select">
-        <option value="OPERATIONAL">Operational</option>
-        <option value="MAINTENANCE">Maintenance</option>
-        <option value="DEPLOYED">Deployed</option>
-    </select>
-    
-    <button type="submit" class="btn btn-primary btn-sm mt-2">Update Status</button>
-</form>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}"> 
+                                    
+                                    <select name="status" class="form-select form-select-sm d-inline-block w-auto me-2">
+                                        <option value="OPERATIONAL">Operational</option>
+                                        <option value="MAINTENANCE">Maintenance</option>
+                                        <option value="DEPLOYED">Deployed</option>
+                                    </select>
+                                    
+                                    <button type="submit" class="btn btn-primary btn-sm">Update Status</button>
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}
@@ -64,5 +73,23 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Target all alerts on the page
+            const alerts = document.querySelectorAll('.alert');
+            
+            alerts.forEach(function(alert) {
+                // Wait 3000ms (3 seconds) before starting fade out
+                setTimeout(function() {
+                    alert.style.opacity = '0';
+                    // Wait for CSS transition (0.5s) to finish, then remove element from DOM
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>

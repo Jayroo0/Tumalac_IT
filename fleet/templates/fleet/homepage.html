@@ -278,7 +278,13 @@
                                             {{ vehicle.status }}
                                         </span>
                                     </td>
-                                    <td class="fw-bold text-secondary">{{ vehicle.assigned_driver }}</td>
+                                    <td class="fw-bold text-secondary">
+                                        {% if vehicle.assigned_driver %}
+                                            <i class="fa-solid fa-user-check text-success me-1"></i> {{ vehicle.assigned_driver.name }}
+                                        {% else %}
+                                            <span class="text-muted fw-normal opacity-60">Standby / Unassigned</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr><td colspan="4" class="text-center py-5 fw-bold text-muted">NO LAND MOBILE ASSETS LOGGED IN MATRIX.</td></tr>
@@ -308,14 +314,23 @@
                             <tbody>
                                 {% for craft in marine_crafts %}
                                 <tr>
-                                    <td class="fw-bold text-primary">{{ craft.model_name }}</td>
+                                    <td class="fw-bold text-primary">
+                                        {{ craft.model_name }}
+                                        <div class="small opacity-70 fw-normal text-muted mt-0.5" style="font-size: 0.8rem;">{{ craft.vehicle_type.name }}</div>
+                                    </td>
                                     <td><span class="code-tag-blue">{{ craft.plate_number }}</span></td>
                                     <td>
                                         <span class="status-pill {% if craft.status == 'OPERATIONAL' %}op{% elif craft.status == 'MAINTENANCE' %}maint{% else %}dep{% endif %}">
                                             {{ craft.status }}
                                         </span>
                                     </td>
-                                    <td class="fw-bold text-secondary">{{ craft.assigned_driver }}</td>
+                                    <td class="fw-bold text-secondary">
+                                        {% if craft.assigned_driver %}
+                                            <i class="fa-solid fa-anchor text-info me-1"></i> {{ craft.assigned_driver.name }}
+                                        {% else %}
+                                            <span class="text-muted fw-normal opacity-60">No Crew Assigned</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr><td colspan="4" class="text-center py-5 fw-bold text-muted">NO MARITIME LOGISTICS ASSETS LOGGED IN MATRIX.</td></tr>

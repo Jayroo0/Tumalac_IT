@@ -11,6 +11,9 @@
         .table-theme th { background-color: #0EA5E9 !important; color: white !important; }
         .btn-save { background-color: #EA580C; color: white; font-weight: bold; }
         .btn-save:hover { background-color: #C2410C; color: white; }
+        
+        /* Smooth transition for disappearing alerts */
+        .alert { transition: opacity 0.5s ease; }
     </style>
 </head>
 <body>
@@ -20,7 +23,14 @@
     </nav>
 
     <div class="container-fluid px-4">
-        {% if messages %}{% for msg in messages %}<div class="alert alert-success alert-dismissible fade show shadow-sm">{{ msg }}<button class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm">
+                    {{ msg }}
+                    <button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
         
         <h3 class="fw-bold mb-3" style="color: #1A365D;">Land Vehicle Work Orders</h3>
         <div class="card shadow-sm border-0">
@@ -35,25 +45,25 @@
                             <td class="fw-bold text-dark">{{ vehicle.model_name }} <span class="badge bg-secondary font-monospace text-uppercase ms-1">{{ vehicle.vehicle_type.name }}</span></td>
                             <td><code class="bg-light text-dark border px-2 py-1 rounded font-monospace">{{ vehicle.plate_number }}</code></td>
                             <td>
-    {% if vehicle.status|upper == 'OPERATIONAL' %}
-        <span class="badge bg-success">Operational / Ready</span>
-    {% elif vehicle.status|upper == 'MAINTENANCE' %}
-        <span class="badge bg-warning text-dark">Under Repair / Maintenance</span>
-    {% elif vehicle.status|upper == 'DEPLOYED' %}
-        <span class="badge bg-info text-dark">Deployed in Field</span>
-    {% else %}
-        <span class="badge bg-danger">Out of Order ({{ vehicle.status }})</span>
-    {% endif %}
-</td>
+                                {% if vehicle.status|upper == 'OPERATIONAL' %}
+                                    <span class="badge bg-success">Operational / Ready</span>
+                                {% elif vehicle.status|upper == 'MAINTENANCE' %}
+                                    <span class="badge bg-warning text-dark">Under Repair / Maintenance</span>
+                                {% elif vehicle.status|upper == 'DEPLOYED' %}
+                                    <span class="badge bg-info text-dark">Deployed in Field</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Out of Order ({{ vehicle.status }})</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <form method="POST" class="d-flex gap-2 m-0 align-items-center">
                                     {% csrf_token %}
                                     <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-<select name="status" class="form-select form-select-sm" required>
-    <option value="OPERATIONAL" {% if vehicle.status == 'OPERATIONAL' %}selected{% endif %}>Operational</option>
-    <option value="MAINTENANCE" {% if vehicle.status == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
-    <option value="DEPLOYED" {% if vehicle.status == 'DEPLOYED' %}selected{% endif %}>Deployed</option>
-</select>
+                                    <select name="status" class="form-select form-select-sm" required>
+                                        <option value="OPERATIONAL" {% if vehicle.status == 'OPERATIONAL' %}selected{% endif %}>Operational</option>
+                                        <option value="MAINTENANCE" {% if vehicle.status == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
+                                        <option value="DEPLOYED" {% if vehicle.status == 'DEPLOYED' %}selected{% endif %}>Deployed</option>
+                                    </select>
                                     <button type="submit" class="btn btn-sm btn-save"><i class="fa-solid fa-floppy-disk"></i> Commit Status</button>
                                 </form>
                             </td>
@@ -64,5 +74,22 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const alerts = document.querySelectorAll('.alert');
+            
+            alerts.forEach(function(alert) {
+                // Wait 3 seconds before initiating fade out
+                setTimeout(function() {
+                    alert.style.opacity = '0';
+                    // Allow 500ms CSS transition to finish, then drop from DOM layout completely
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>

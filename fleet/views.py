@@ -5,6 +5,10 @@ from django.contrib.auth import logout
 from django.contrib.admin.models import LogEntry, CHANGE, ADDITION 
 from django.contrib.contenttypes.models import ContentType          
 from .models import Vehicle, VehicleType, Driver  # 🟢 Added Driver model here
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 # =========================================================================
 # SYSTEM SECURITY & AUDIT LOG HELPERS
@@ -264,3 +268,63 @@ def logistics_dashboard(request):
         'drivers': drivers
     }
     return render(request, 'fleet/logistics_dashboard.html', context)
+
+@csrf_exempt # 🛡️ Exempt from CSRF since this is an automated hardware scanner webhook
+def rfid_sensor_trigger(request):
+    """
+    Automated Endpoint: Triggered by the physical gate sensor.
+    Expects a POST request with JSON payload: {"rfid_tag": "TAG_VALUE_HERE"}
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST requests are accepted.'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        tag_id = data.get('rfid_tag', '').strip()
+        
+        if not tag_id:
+            return JsonResponse({'status': 'error', 'message': 'Missing rfid_tag identifier parameters.'}, status=400)
+        
+        # 🔍 Locate the asset mapped to this physical tag string
+        vehicle = Vehicle.objects.filter(rfid_tag=tag_id).first()
+        
+        if not vehicle:
+            return JsonResponse({'status': 'error', 'message': f'RFID Tag [{tag_id}] not matched to any fleet registry.'}, status=404)
+        
+        # 🛑 Guardrail rule: Block if it's undergoing critical repairs
+        if vehicle.status == 'MAINTENANCE':
+            return JsonResponse({
+                'status': 'blocked', 
+                'message': f"Automated deployment rejected: Asset '{vehicle.model_name}' is locked under MAINTENANCE constraints."
+            }, status=403)
+            
+        # 🔄 Edge Case: If already deployed, don't repeat the save transaction logs
+        if vehicle.status == 'DEPLOYED':
+            return JsonResponse({'status': 'ignored', 'message': f"'{vehicle.model_name}' is already logged as DEPLOYED."}, status=200)
+            
+        # 🚀 Execute Automatic Status Shift Upgrades
+        old_status = vehicle.status
+        vehicle.status = 'DEPLOYED'
+        vehicle.save()
+        
+        # Log to the admin records using a mock system user ID (e.g., user_id=1 or None)
+        LogEntry.objects.create(
+            user_id=1, # Default system account / fallback administrator ID
+            content_type_id=ContentType.objects.get_for_model(vehicle).id,
+            object_id=vehicle.id,
+            object_repr=str(vehicle),
+            action_flag=CHANGE,
+            change_message=f"AUTOMATED RFID DEPLOYMENT: Scanned at external perimeter gate. Shifted from {old_status}."
+        )
+        
+        return JsonResponse({
+            'status': 'success', 
+            'message': f"Asset unit '{vehicle.model_name}' automatically set to DEPLOYED out of premises.",
+            'vehicle_id': vehicle.id,
+            'plate_number': vehicle.plate_number
+        }, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data string format.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

@@ -22,6 +22,9 @@ class Vehicle(models.Model):
         ('DEPLOYED', 'Deployed'),
     ]
 
+    # 🆕 Add this field for the physical sensor sync:
+    rfid_tag = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text="Unique RFID tag identifier attached to the vehicle chassis.")
+
     model_name = models.CharField(max_length=100)
     plate_number = models.CharField(max_length=50, unique=True)
     vehicle_type = models.ForeignKey('VehicleType', on_delete=models.CASCADE)

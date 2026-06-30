@@ -10,4 +10,5 @@ urlpatterns = [
     path('repair/', views.repairman_dashboard, name='repairman_dashboard'),
     path('maritime/', views.seacraft_dashboard, name='seacraft_dashboard'),
     path('logistics/', views.logistics_dashboard, name='logistics_dashboard'),
+    path('api/rfid-trigger/', views.rfid_sensor_trigger, name='api_rfid_trigger'),
 ]

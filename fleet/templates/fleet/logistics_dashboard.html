@@ -97,12 +97,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <form action="{% url 'logistics_dashboard' %}" method="post" class="d-flex gap-2 m-0">
+                                <form id="assign-form-{{ vehicle.id }}" action="{% url 'logistics_dashboard' %}" method="post" class="d-flex gap-2 m-0">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="set_driver">
                                     <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                                     
-                                    <select name="driver_id" class="form-select form-select-sm" style="max-width: 200px;" {% if vehicle.status == 'DEPLOYED' %}disabled{% endif %}>
+                                    <select name="driver_id" class="form-select form-select-sm" style="max-width: 200px;" 
+                                            onchange="this.form.submit();"                                    
+                                            {% if vehicle.status == 'DEPLOYED' %}disabled{% endif %}>
                                         <option value="">-- Standby / Unassigned --</option>
                                         {% if vehicle.assigned_driver %}
                                             <option value="{{ vehicle.assigned_driver.id }}" selected>
@@ -115,7 +117,7 @@
                                             {% endif %}
                                         {% endfor %}
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-dark" {% if vehicle.status == 'DEPLOYED' %}disabled{% endif %}>SET</button>
+                                    
                                 </form>
                             </td>
                             <td>
@@ -128,6 +130,10 @@
                                     {% elif vehicle.status == 'DEPLOYED' %}
                                         <input type="hidden" name="action" value="return_vehicle">
                                         <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fa-solid fa-arrow-rotate-left me-1"></i> RETURN</button>
+                                    {% elif vehicle.status == 'MAINTENANCE' and vehicle.assigned_driver %}
+                                        <input type="hidden" name="action" value="set_driver">
+                                        <input type="hidden" name="driver_id" value="">
+                                        <button type="submit" class="btn btn-sm btn-danger w-100"><i class="fa-solid fa-user-slash me-1"></i> REMOVE DRIVER</button>
                                     {% else %}
                                         <button type="button" class="btn btn-sm btn-secondary w-100" disabled><i class="fa-solid fa-ban me-1"></i> LOCKED</button>
                                     {% endif %}
@@ -145,7 +151,7 @@
         <div class="card shadow-sm border-0 mb-5">
             <div class="panel-header-custom d-flex justify-content-between align-items-center" style="background-color: #0284C7;">
                 <span><i class="fa-solid fa-ship me-2 text-warning"></i>MARITIME DIVISION (SEACRAFTS)</span>
-                <span class="badge bg-light text-dark font-monospace">REGISTRY: {{ marine_crafts.count }}</span>
+                <span class="badge bg-light text-dark font-monospace">REGISTRY: {{ sea_crafts.count }}</span>
             </div>
             <div class="card-body p-0 border bg-white rounded-bottom">
                 <table class="table table-hover align-middle mb-0">
@@ -159,7 +165,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for craft in marine_crafts %}
+                        {% for craft in sea_crafts %}
                         <tr>
                             <td>
                                 <strong>{{ craft.model_name }}</strong>
@@ -181,32 +187,44 @@
                                     <input type="hidden" name="action" value="set_driver">
                                     <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
                                     
-                                    <select name="driver_id" class="form-select form-select-sm" style="max-width: 200px;" {% if craft.status == 'DEPLOYED' %}disabled{% endif %}>
+                                    <select name="driver_id" 
+                                            class="form-select form-select-sm fw-bold border-secondary-subtle" 
+                                            style="max-width: 200px; cursor: pointer;"
+                                            onchange="this.form.submit();"
+                                            {% if craft.status == 'DEPLOYED' %}disabled{% endif %}>
+                                        
                                         <option value="">-- Standby / Unassigned --</option>
+                                        
                                         {% if craft.assigned_driver %}
                                             <option value="{{ craft.assigned_driver.id }}" selected>
-                                                {{ craft.assigned_driver.name }} {% if craft.status == 'DEPLOYED' %}(In Field){% endif %}
+                                                👤 {{ craft.assigned_driver.name }} {% if craft.status == 'DEPLOYED' %}(In Field){% endif %}
                                             </option>
                                         {% endif %}
+                                        
                                         {% for driver in drivers %}
                                             {% if craft.assigned_driver.id != driver.id %}
-                                                <option value="{{ driver.id }}">{{ driver.name }}</option>
+                                                <option value="{{ driver.id }}">👤 {{ driver.name }}</option>
                                             {% endif %}
                                         {% endfor %}
                                     </select>
-                                    <button type="submit" class="btn btn-sm btn-dark" {% if craft.status == 'DEPLOYED' %}disabled{% endif %}>SET</button>
                                 </form>
                             </td>
                             <td>
                                 <form action="{% url 'logistics_dashboard' %}" method="post" class="m-0">
                                     {% csrf_token %}
                                     <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
+                                    
                                     {% if craft.status == 'OPERATIONAL' %}
                                         <input type="hidden" name="action" value="deploy_vehicle">
                                         <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-rocket me-1"></i> DEPLOY</button>
                                     {% elif craft.status == 'DEPLOYED' %}
                                         <input type="hidden" name="action" value="return_vehicle">
                                         <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fa-solid fa-arrow-rotate-left me-1"></i> RETURN</button>
+
+                                    {% elif craft.status == 'MAINTENANCE' and craft.assigned_driver %}
+                                        <input type="hidden" name="action" value="set_driver">
+                                        <input type="hidden" name="driver_id" value="">
+                                        <button type="submit" class="btn btn-sm btn-danger w-100"><i class="fa-solid fa-user-slash me-1"></i> REMOVE OPERATOR</button>
                                     {% else %}
                                         <button type="button" class="btn btn-sm btn-secondary w-100" disabled><i class="fa-solid fa-ban me-1"></i> LOCKED</button>
                                     {% endif %}

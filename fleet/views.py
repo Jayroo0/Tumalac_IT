@@ -50,12 +50,26 @@ def log_action_to_admin(request, object_instance, action_flag, change_message):
 # =========================================================================
 def homepage(request):
     all_vehicles = Vehicle.objects.all().select_related('vehicle_type', 'assigned_driver')
-    marine_crafts = all_vehicles.filter(vehicle_type__name__iexact='MARINE')
+    sea_crafts = all_vehicles.filter(vehicle_type__name__iexact='MARINE')
     land_vehicles = all_vehicles.exclude(vehicle_type__name__iexact='MARINE')
-    
+    total_fleet = Vehicle.objects.exclude(status='disposal').count()
+    land_operational_count = land_vehicles.filter(status='OPERATIONAL').count()
+    sea_operational_count = sea_crafts.filter(status='OPERATIONAL').count()
+    land_deployed_count = land_vehicles.filter(status='DEPLOYED').count()
+    sea_deployed_count = sea_crafts.filter(status='DEPLOYED').count()
+    land_maintenance_count = land_vehicles.filter(status='MAINTENANCE').count()
+    sea_maintenance_count = sea_crafts.filter(status='MAINTENANCE').count()
+
     context = {
-        'marine_crafts': marine_crafts,
+        'total_fleet': total_fleet,
+        'sea_crafts': sea_crafts,
         'land_vehicles': land_vehicles,
+        'land_operational_count': land_operational_count,
+        'sea_operational_count': sea_operational_count,
+        'land_deployed_count': land_deployed_count,
+        'sea_deployed_count': sea_deployed_count,
+        'land_maintenance_count': land_maintenance_count,
+        'sea_maintenance_count': sea_maintenance_count,
         'total_count': all_vehicles.count(),
         'operational_count': all_vehicles.filter(status='OPERATIONAL').count(),
         'maintenance_count': all_vehicles.filter(status='MAINTENANCE').count(),
@@ -292,13 +306,13 @@ def logistics_dashboard(request):
     
     # Filter segments matching the exact type keys used by your dashboard template panels
     land_vehicles = all_vehicles.filter(vehicle_type__name__iexact='LAND')
-    marine_crafts = all_vehicles.filter(vehicle_type__name__iexact='MARINE')
+    sea_crafts = all_vehicles.filter(vehicle_type__name__iexact='MARINE')
     
     types = VehicleType.objects.all()
     
     context = {
         'land_vehicles': land_vehicles, 
-        'marine_crafts': marine_crafts, 
+        'sea_crafts': sea_crafts, 
         'types': types, 
         'drivers': available_drivers, # Extracted from the deployed check above
     }

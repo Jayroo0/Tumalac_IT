@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>PDRRMO Enterprise Authentication</title>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .corporate-card { 
+            background: #ffffff; 
+            border-radius: 6px; 
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+        }
+        .form-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #475569;
+        }
+        .form-control {
+            border-radius: 4px;
+            padding: 0.575rem 0.75rem;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+        .form-control:focus {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 1px #0f172a;
+        }
+        .btn-corporate {
+            background-color: #0f172a;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 0.6rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .btn-corporate:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+        .back-link {
+            color: #64748b;
+            font-size: 0.825rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.15s ease;
+        }
+        .back-link:hover {
+            color: #0f172a;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center p-3">
+
+    <div class="card p-4 p-md-5 corporate-card" style="width: 100%; max-width: 420px;">
+        
+        <div class="mb-4 text-start">
+            <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.03em;">PDRRMO Fleet</h4>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary rounded-1 text-uppercase" style="font-size: 0.65rem; padding: 0.25em 0.5em;">Internal</span>
+                <p class="text-muted small mb-0" style="font-size: 0.8rem;">Administrative Access Gateway</p>
+            </div>
+        </div>
+        
+        {% if form.errors and not form.non_field_errors %}
+        <div class="alert alert-danger rounded-1 small py-2 mb-3" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i> Missing required credentials.
+        </div>
+        {% endif %}
+        {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+        <div class="alert alert-danger rounded-1 small py-2 mb-3" style="font-size: 0.8rem;">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ error }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="corporate.identity" required autofocus>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            
+            <input type="hidden" name="next" value="{{ next }}">
+            
+            <button type="submit" class="btn btn-corporate w-100 text-center mb-3">
+                Sign In to Account
+            </button>
+        </form>
+
+        <div class="text-start pt-3 border-top border-slate-200">
+            <a href="{% url 'homepage' %}" class="back-link d-inline-flex align-items-center gap-1">
+                <i class="fa-solid fa-arrow-left small"></i> Back to Fleet Overview
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

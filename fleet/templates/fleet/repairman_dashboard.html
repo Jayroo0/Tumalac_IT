@@ -9,33 +9,34 @@
         body { background-color: #FFFFFF; }
         .nav-header { background-color: #1A365D; border-bottom: 4px solid #0EA5E9; }
         .table-theme th { background-color: #0EA5E9 !important; color: white !important; }
-        .btn-save { background-color: #EA580C; color: white; font-weight: bold; }
-        .btn-save:hover { background-color: #C2410C; color: white; }
+        
+        /* 🌟 Custom Styling for smooth slider colors matching dashboard status rules */
+        .custom-switch .form-check-input {
+            width: 3rem;
+            height: 1.5rem;
+            cursor: pointer;
+            background-color: #10B981; /* Default/Unchecked: Green for Operational */
+            border-color: #10B981;
+        }
+        .custom-switch .form-check-input:checked {
+            background-color: #DC2626; /* Checked: Red/Amber for Maintenance */
+            border-color: #DC2626;
+        }
+        .custom-switch .form-check-input:focus {
+            box-shadow: none;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-dark nav-header px-4 py-2 shadow-sm mb-4">
         <span class="navbar-brand fw-bold text-white"><i class="fa-solid fa-screwdriver-wrench text-warning"></i> Land Operations Mechanical Workbench</span>
-        <a href="{% url 'homepage' %}" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-house"></i> Control Board</a>
+        <a href="{% url 'dashboard_portal:login' %}" class="btn btn-sm btn-outline-light fw-bold px-3">
+            <i class="fa-solid fa-house me-1"></i> Log Out
+        </a>
     </nav>
 
     <div class="container-fluid px-4">
-        
-        {% if messages %}
-        <div id="floating-alert-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 450px;">
-            {% for msg in messages %}
-            <div class="alert alert-success alert-dismissible fade show shadow-lg border-0 mb-2 p-3 text-white bg-dark d-flex align-items-center justify-content-between" 
-                 role="alert" 
-                 style="border-left: 5px solid #EA580C !important; border-radius: 6px;">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-warning"></i>
-                    <span class="fw-semibold font-monospace small">{{ msg }}</span>
-                </div>
-                <button type="button" class="btn-close btn-close-white m-0 p-2" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
         
         <h3 class="fw-bold mb-3" style="color: #1A365D;">Land Vehicle Work Orders</h3>
         <div class="card shadow-sm border-0">
@@ -46,7 +47,7 @@
                             <th>Equipment Unit</th>
                             <th>Identifier Tag</th>
                             <th>Current Status</th>
-                            <th>Action Diagnostic Toggle Override</th>
+                            <th class="text-end text-sm-start" style="padding-right: 2.5rem;">Action Diagnostic Toggle Override</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,19 +79,44 @@
                             </td>
                             
                             <td>
-                                <form method="POST" class="d-flex gap-2 m-0 align-items-center">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                    
-                                    <select name="status" class="form-select form-select-sm" style="max-width: 160px; height: 38px;" required>
-                                        <option value="OPERATIONAL" {% if vehicle.status == 'OPERATIONAL' %}selected{% endif %}>Operational</option>
-                                        <option value="MAINTENANCE" {% if vehicle.status == 'MAINTENANCE' %}selected{% endif %}>Maintenance</option>
-                                    </select>
-                                    
-                                    <button type="submit" class="btn btn-sm btn-save d-inline-flex align-items-center gap-1" style="height: 38px; padding-left: 15px; padding-right: 15px;">
-                                        <i class="fa-solid fa-floppy-disk"></i> Commit Status
-                                    </button>
-                                </form>
+                                <div class="d-flex align-items-center gap-4">
+                                    {% if vehicle.status == 'MAINTENANCE' %}
+                                        <form action="{% url 'dashboard_portal:repairman_dashboard' %}" method="POST" class="m-0" onsubmit="return captureWorkshopDisposalRemarks(this);">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                                            <input type="hidden" name="action_type" value="FLAG_DISPOSAL">
+                                            <input type="hidden" name="disposal_remarks" id="workshop_remarks_input_{{ vehicle.id }}" value="">
+                                            
+                                            <button type="submit" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 fw-bold px-2.5 py-1.5 uppercase text-xs tracking-wider cursor-pointer shadow-sm">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                <span>Move For Disposal</span>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <form method="POST" action="{% url 'dashboard_portal:repairman_dashboard' %}" class="form-check form-switch custom-switch d-flex align-items-center gap-3 m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                                        <input type="hidden" name="action_type" value="STATUS_TOGGLE">
+                                        
+                                        <input type="hidden" name="status" id="real_status_{{ vehicle.id }}" value="{% if vehicle.status == 'MAINTENANCE' %}OPERATIONAL{% else %}MAINTENANCE{% endif %}">
+                                        
+                                        <input 
+                                            type="checkbox" 
+                                            class="form-check-input mt-0"
+                                            {% if vehicle.status == 'MAINTENANCE' %}checked{% endif %}
+                                            onchange="this.form.submit()"
+                                        >
+                                        
+                                        <span class="fw-bold text-uppercase tracking-wider text-muted small" style="min-width: 110px;">
+                                            {% if vehicle.status == 'MAINTENANCE' %}
+                                                <span class="text-danger">Maintenance</span>
+                                            {% else %}
+                                                <span class="text-success">Operational</span>
+                                            {% endif %}
+                                        </span>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -101,21 +127,85 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% if messages %}
+    <div id="alert-container" class="fixed-bottom p-4 d-flex flex-column align-items-end z-50 space-y-3 w-full max-w-sm" style="left: auto; top: auto; right: 0; bottom: 0;">
+        {% for message in messages %}
+            <div class="alert-box p-4 rounded-xl shadow-lg border text-sm font-medium d-flex align-items-center justify-content-between bg-white backdrop-blur-md mb-2" style="min-width: 300px; {% if message.tags == 'success' %}border-color: #10B981; color: #065F46; background-color: rgba(240, 253, 250, 0.95);{% else %}border-color: #F59E0B; color: #78350F; background-color: rgba(254, 243, 199, 0.95);{% endif %}">
+                <div class="d-flex align-items-center gap-2">
+                    {% if message.tags == 'success' %}
+                        <svg style="width: 20px; height: 20px; color: #10B981;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    {% else %}
+                        <svg style="width: 20px; height: 20px; color: #F59E0B;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    {% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                
+                <button onclick="this.parentElement.remove()" class="btn-close ms-3" style="font-size: 0.75rem; shadow: none; cursor: pointer;"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %} 
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const alertContainer = document.getElementById("floating-alert-container");
+            const alertContainer = document.getElementById("alert-container");
+            
             if (alertContainer) {
                 setTimeout(function() {
-                    alertContainer.style.transition = "all 0.5s ease";
+                    alertContainer.style.transition = "all 0.5s ease-in-out";
                     alertContainer.style.opacity = '0';
-                    alertContainer.style.transform = "translateY(20px)";
+                    alertContainer.style.transform = 'translate(50px, 20px)';
                     
                     setTimeout(function() {
                         alertContainer.remove();
-                    }, 500);
-                }, 3000);
+                    }, 500); 
+                }, 4000);
             }
         });
+
+        // 🚨 Intercepts form submission to mandate structural justification input reasons
+        function captureWorkshopDisposalRemarks(form) {
+            const vehicleId = form.querySelector('input[name="vehicle_id"]').value;
+            const remarksInput = document.getElementById('workshop_remarks_input_' + vehicleId);
+            
+            const userRemarks = prompt("🚨 WORKSHOP ATTENTION: Please specify the unrepairable fault or justification for decommissioning this asset:");
+            
+            if (userRemarks === null) {
+                return false; // Action dropped by operator
+            }
+            
+            if (userRemarks.trim() === "") {
+                alert("⚠️ Action Denied: Workshop diagnosis remarks are required to initiate disposal workflows.");
+                return false;
+            }
+            
+            remarksInput.value = userRemarks;
+            return true;
+        }
     </script>
+
+    <script>
+    // 🌟 Handles the checkbox conversion safely before form submission
+    function submitToggle(checkboxElement, vehicleId) {
+        const hiddenInput = document.getElementById('status_submit_' + vehicleId);
+        
+        // If the box is checked, we want to push it into MAINTENANCE.
+        // If the box is unchecked, we force the string value back to OPERATIONAL!
+        if (checkboxElement.checked) {
+            hiddenInput.value = "MAINTENANCE";
+        } else {
+            hiddenInput.value = "OPERATIONAL";
+        }
+        
+        // Dispatches the complete payload straight to views.py
+        checkboxElement.form.submit();
+    }
+</script>
+
 </body>
 </html>

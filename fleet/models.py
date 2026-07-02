@@ -12,7 +12,8 @@ class Driver(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
-    def __clstr__(self):
+    # 🛠️ FIX: Corrected __clstr__ typo to the standardized magic method __str__
+    def __str__(self):
         return self.name
 
 class Vehicle(models.Model):
@@ -24,11 +25,22 @@ class Vehicle(models.Model):
 
     model_name = models.CharField(max_length=100)
     plate_number = models.CharField(max_length=50, unique=True)
-    vehicle_type = models.ForeignKey('VehicleType', on_delete=models.CASCADE)
-    status = models.CharField(max_length=50, default='OPERATIONAL') # OPERATIONAL, MAINTENANCE, DEPLOYED
+    vehicle_type = models.ForeignKey(VehicleType, on_delete=models.CASCADE)
     
-    # Change this from a CharField to a ForeignKey pointing to our new Driver model
-    assigned_driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='vehicles')
+    # 🛠️ FIX: Added choices constraint to bind the field parameters safely to your options matrix
+    status = models.CharField(
+        max_length=50, 
+        choices=STATUS_CHOICES, 
+        default='OPERATIONAL'
+    )
+    
+    assigned_driver = models.ForeignKey(
+        Driver, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='vehicles'
+    )
 
     def __str__(self):
         return f"{self.model_name} ({self.plate_number})"

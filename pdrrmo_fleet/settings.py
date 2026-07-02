@@ -50,13 +50,22 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+# pdrrmo_fleet/settings.py
+
+JAZZMIN_SETTINGS = {
+    # 🌟 FIX: Force Jazzmin to route its login/logout redirections to your custom view
+    "login_url": "dashboard_portal:login",
+    
+    # ... keep all your existing jazzmin title, theme, and logo specs below ...
+    "site_title": "PDRRMO Fleet Control",
+}
 
 ROOT_URLCONF = 'pdrrmo_fleet.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True, 
         'OPTIONS': {
             'context_processors': [
@@ -119,7 +128,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# settings.py
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = 'dashboard_redirect'
-LOGOUT_REDIRECT_URL = 'homepage'
+LOGIN_URL = 'dashboard_portal:login'
+LOGOUT_REDIRECT_URL = 'dashboard_portal:login'
+LOGIN_REDIRECT_URL = 'dashboard_portal:dashboard_router'

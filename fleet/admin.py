@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
-from django.contrib.admin.models import LogEntry
+from django.contrib.admin.models import LogEntry, CHANGE
+from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
+from django.contrib.auth.hashers import check_password
+from django.template.response import TemplateResponse
+from django.http import HttpResponseRedirect
 from .models import Vehicle, VehicleType, Driver  # 🟢 Added Driver model here
 
 # =========================================================================
@@ -62,6 +66,13 @@ class VehicleAdmin(admin.ModelAdmin):
     # 🔄 Note: we use assigned_driver__name because assigned_driver is now a model reference
     search_fields = ('model_name', 'plate_number', 'assigned_driver__name')
 
+    def get_queryset(self, request):
+        """
+        Filters out archived or permanently disposed items from the active vehicle panel.
+        """
+        qs = super().get_queryset(request)
+        return qs.exclude(status__in=['ARCHIVED', 'DISPOSED'])
+
     @admin.display(description="Driver Phone Number")
     def driver_phone(self, obj):
         """
@@ -71,6 +82,91 @@ class VehicleAdmin(admin.ModelAdmin):
         if obj.assigned_driver and obj.assigned_driver.phone_number:
             return obj.assigned_driver.phone_number
         return "-"
+
+
+# =========================================================================
+# 5B. PROXY SYSTEM FOR CLOSED ARCHIVES (SEPARATE VIEW PANEL)
+# =========================================================================
+class ArchivedVehicle(Vehicle):
+    """
+    A Django Proxy model shares the core vehicle table but allows a separate 
+    isolated panel configuration inside the admin control dashboard.
+    """
+    class Meta:
+        proxy = True
+        verbose_name = "Archived / Disposed Asset"
+        verbose_name_plural = "Archived / Disposed Assets"
+
+@admin.register(ArchivedVehicle)
+class ArchivedVehicleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'model_name', 'plate_number', 'vehicle_type', 'status', 'driver_phone']
+    list_filter = ('status', 'vehicle_type')
+    search_fields = ('model_name', 'plate_number', 'assigned_driver__name')
+    actions = ['recover_disposed_vehicle']
+
+    def get_queryset(self, request):
+        """
+        Restricts this panel to only display archived or permanently disposed assets.
+        """
+        qs = super().get_queryset(request)
+        return qs.filter(status__in=['ARCHIVED', 'DISPOSED'])
+
+    def has_add_permission(self, request): 
+        return False  # Prevents direct accidental manual instantiation inside the dead archives
+
+    @admin.display(description="Driver Phone Number")
+    def driver_phone(self, obj):
+        if obj.assigned_driver and obj.assigned_driver.phone_number:
+            return obj.assigned_driver.phone_number
+        return "-"
+
+    @admin.action(description="🔄 Recover selected vehicle assets (Superuser Auth Required)")
+    def recover_disposed_vehicle(self, request, queryset):
+        """
+        Intermediary action verifying superuser status and password before 
+        reverting a vehicle asset back to an operational state.
+        """
+        if not request.user.is_superuser:
+            self.message_user(request, "🛡️ Access Denied: Only superusers possess recovery access rights.", messages.ERROR)
+            return HttpResponseRedirect(request.get_full_path())
+
+        # If password form submission has been executed
+        if request.POST.get('post') == 'yes':
+            pwd_input = request.POST.get('superuser_password')
+            
+            if check_password(pwd_input, request.user.password):
+                updated_count = queryset.count()
+                for vehicle in queryset:
+                    vehicle.status = 'OPERATIONAL'
+                    if hasattr(vehicle, 'is_active'):
+                        vehicle.is_active = True
+                    vehicle.save()
+                    
+                    # Create internal administrative audit logging trail
+                    LogEntry.objects.create(
+                        user_id=request.user.id,
+                        content_type_id=ContentType.objects.get_for_model(vehicle).id,
+                        object_id=vehicle.id,
+                        object_repr=str(vehicle),
+                        action_flag=CHANGE,
+                        change_message="Disposed vehicle asset securely unarchived and recovered."
+                    )
+                
+                self.message_user(request, f"🔄 Successfully recovered {updated_count} vehicle records back to active inventory.", messages.SUCCESS)
+                return HttpResponseRedirect(request.get_full_path())
+            else:
+                self.message_user(request, "❌ Authentication Failure: Incorrect superuser credentials matching. Operation dropped.", messages.ERROR)
+                return HttpResponseRedirect(request.get_full_path())
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': "Security Gate: Confirm Asset Recovery Authorization",
+            'queryset': queryset,
+            'opts': self.model._meta,
+            'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+            'media': self.media,
+        }
+        return TemplateResponse(request, 'admin/recover_confirmation.html', context)
 
 
 # =========================================================================

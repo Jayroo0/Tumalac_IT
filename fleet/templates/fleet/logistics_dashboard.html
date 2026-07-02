@@ -32,34 +32,28 @@
                 <i class="fa-solid fa-plus me-1"></i> Onboard New Fleet Asset
             </button>
             
-            <a href="{% url 'homepage' %}" class="btn btn-sm btn-outline-light fw-bold px-3">
-                <i class="fa-solid fa-house me-1"></i> Control Board
+            <a href="{% url 'dashboard_portal:login' %}" class="btn btn-sm btn-outline-light fw-bold px-3">
+                <i class="fa-solid fa-house me-1"></i> Log Out
             </a>
         </div>
     </nav>
 
     <div class="container-fluid px-4">
-        <!-- {% if messages %}
-            {% for msg in messages %}
-                <div class="alert alert-success alert-dismissible fade show shadow-sm">{{ msg }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
-            {% endfor %}
-        {% endif %} -->
-
         {% if messages %}
-<div id="floating-alert-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 450px;">
-    {% for msg in messages %}
-    <div class="alert alert-success alert-dismissible fade show shadow-lg border-0 mb-2 p-3 text-white bg-dark d-flex align-items-center justify-content-between" 
-         role="alert" 
-         style="border-left: 5px solid #EA580C !important; border-radius: 6px;">
-        <div class="d-flex align-items-center gap-2">
-            <i class="fa-solid fa-circle-check text-warning"></i>
-            <span class="fw-semibold font-monospace small">{{ msg }}</span>
+        <div id="floating-alert-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 450px;">
+            {% for msg in messages %}
+            <div class="alert alert-success alert-dismissible fade show shadow-lg border-0 mb-2 p-3 text-white bg-dark d-flex align-items-center justify-content-between" 
+                 role="alert" 
+                 style="border-left: 5px solid #EA580C !important; border-radius: 6px;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-warning"></i>
+                    <span class="fw-semibold font-monospace small">{{ msg }}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white m-0 p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
         </div>
-        <button type="button" class="btn-close btn-close-white m-0 p-2" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+        {% endif %}
 
         <h3 class="fw-bold mb-4" style="color: #1A365D;">Personnel Deployment & Asset Tracking Manifest</h3>
         
@@ -92,19 +86,21 @@
                                     <span class="badge bg-primary">DEPLOYED</span>
                                 {% elif vehicle.status == 'MAINTENANCE' %}
                                     <span class="badge bg-danger">MAINTENANCE</span>
+                                {% elif vehicle.status == 'PENDING_DISPOSAL' %}
+                                    <span class="badge bg-dark border border-warning text-warning animate-pulse">PENDING DISPOSAL</span>
                                 {% else %}
                                     <span class="badge bg-success">OPERATIONAL</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <form id="assign-form-{{ vehicle.id }}" action="{% url 'logistics_dashboard' %}" method="post" class="d-flex gap-2 m-0">
+                                <form id="assign-form-{{ vehicle.id }}" action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="d-flex gap-2 m-0">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="set_driver">
                                     <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                                     
                                     <select name="driver_id" class="form-select form-select-sm" style="max-width: 200px;" 
                                             onchange="this.form.submit();"                                    
-                                            {% if vehicle.status == 'DEPLOYED' %}disabled{% endif %}>
+                                            {% if vehicle.status == 'DEPLOYED' or vehicle.status == 'PENDING_DISPOSAL' %}disabled{% endif %}>
                                         <option value="">-- Standby / Unassigned --</option>
                                         {% if vehicle.assigned_driver %}
                                             <option value="{{ vehicle.assigned_driver.id }}" selected>
@@ -117,27 +113,49 @@
                                             {% endif %}
                                         {% endfor %}
                                     </select>
-                                    
                                 </form>
                             </td>
                             <td>
-                                <form action="{% url 'logistics_dashboard' %}" method="post" class="m-0">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                    {% if vehicle.status == 'OPERATIONAL' %}
+                                {% if vehicle.status == 'OPERATIONAL' %}
+                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                                         <input type="hidden" name="action" value="deploy_vehicle">
                                         <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-rocket me-1"></i> DEPLOY</button>
-                                    {% elif vehicle.status == 'DEPLOYED' %}
+                                    </form>
+                                {% elif vehicle.status == 'DEPLOYED' %}
+                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                                         <input type="hidden" name="action" value="return_vehicle">
                                         <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fa-solid fa-arrow-rotate-left me-1"></i> RETURN</button>
-                                    {% elif vehicle.status == 'MAINTENANCE' and vehicle.assigned_driver %}
+                                    </form>
+                                {% elif vehicle.status == 'MAINTENANCE' and vehicle.assigned_driver %}
+                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                                         <input type="hidden" name="action" value="set_driver">
                                         <input type="hidden" name="driver_id" value="">
                                         <button type="submit" class="btn btn-sm btn-danger w-100"><i class="fa-solid fa-user-slash me-1"></i> REMOVE DRIVER</button>
-                                    {% else %}
-                                        <button type="button" class="btn btn-sm btn-secondary w-100" disabled><i class="fa-solid fa-ban me-1"></i> LOCKED</button>
-                                    {% endif %}
-                                </form>
+                                    </form>
+                                {% elif vehicle.status == 'PENDING_DISPOSAL' %}
+                                    <div class="d-flex gap-1">
+                                        <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0 w-50">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                                            <input type="hidden" name="action" value="decline_disposal">
+                                            <button type="submit" class="btn btn-xs btn-outline-secondary w-100 py-1 font-monospace" style="font-size: 0.72rem;" title="Decline and return to Under Maintenance"><i class="fa-solid fa-wrench"></i> REPAIR</button>
+                                        </form>
+                                        <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0 w-50">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+                                            <input type="hidden" name="action" value="confirm_disposal">
+                                            <button type="submit" class="btn btn-xs btn-danger w-100 py-1 font-monospace" style="font-size: 0.72rem;" title="Confirm asset disposal clearance"><i class="fa-solid fa-box-archive"></i> ARCHIVE</button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <button type="button" class="btn btn-sm btn-secondary w-100" disabled><i class="fa-solid fa-ban me-1"></i> LOCKED</button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -177,12 +195,14 @@
                                     <span class="badge bg-primary">DEPLOYED</span>
                                 {% elif craft.status == 'MAINTENANCE' %}
                                     <span class="badge bg-danger">MAINTENANCE</span>
+                                {% elif craft.status == 'PENDING_DISPOSAL' %}
+                                    <span class="badge bg-dark border border-warning text-warning animate-pulse">PENDING DISPOSAL</span>
                                 {% else %}
                                     <span class="badge bg-success">OPERATIONAL</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <form action="{% url 'logistics_dashboard' %}" method="post" class="d-flex gap-2 m-0">
+                                <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="d-flex gap-2 m-0">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="set_driver">
                                     <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
@@ -191,16 +211,14 @@
                                             class="form-select form-select-sm fw-bold border-secondary-subtle" 
                                             style="max-width: 200px; cursor: pointer;"
                                             onchange="this.form.submit();"
-                                            {% if craft.status == 'DEPLOYED' %}disabled{% endif %}>
+                                            {% if craft.status == 'DEPLOYED' or craft.status == 'PENDING_DISPOSAL' %}disabled{% endif %}>
                                         
                                         <option value="">-- Standby / Unassigned --</option>
-                                        
                                         {% if craft.assigned_driver %}
                                             <option value="{{ craft.assigned_driver.id }}" selected>
                                                 👤 {{ craft.assigned_driver.name }} {% if craft.status == 'DEPLOYED' %}(In Field){% endif %}
                                             </option>
                                         {% endif %}
-                                        
                                         {% for driver in drivers %}
                                             {% if craft.assigned_driver.id != driver.id %}
                                                 <option value="{{ driver.id }}">👤 {{ driver.name }}</option>
@@ -210,25 +228,46 @@
                                 </form>
                             </td>
                             <td>
-                                <form action="{% url 'logistics_dashboard' %}" method="post" class="m-0">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
-                                    
-                                    {% if craft.status == 'OPERATIONAL' %}
+                                {% if craft.status == 'OPERATIONAL' %}
+                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
                                         <input type="hidden" name="action" value="deploy_vehicle">
                                         <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-rocket me-1"></i> DEPLOY</button>
-                                    {% elif craft.status == 'DEPLOYED' %}
+                                    </form>
+                                {% elif craft.status == 'DEPLOYED' %}
+                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
                                         <input type="hidden" name="action" value="return_vehicle">
                                         <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fa-solid fa-arrow-rotate-left me-1"></i> RETURN</button>
-
-                                    {% elif craft.status == 'MAINTENANCE' and craft.assigned_driver %}
+                                    </form>
+                                {% elif craft.status == 'MAINTENANCE' and craft.assigned_driver %}
+                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
                                         <input type="hidden" name="action" value="set_driver">
                                         <input type="hidden" name="driver_id" value="">
                                         <button type="submit" class="btn btn-sm btn-danger w-100"><i class="fa-solid fa-user-slash me-1"></i> REMOVE OPERATOR</button>
-                                    {% else %}
-                                        <button type="button" class="btn btn-sm btn-secondary w-100" disabled><i class="fa-solid fa-ban me-1"></i> LOCKED</button>
-                                    {% endif %}
-                                </form>
+                                    </form>
+                                {% elif craft.status == 'PENDING_DISPOSAL' %}
+                                    <div class="d-flex gap-1">
+                                        <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0 w-50">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
+                                            <input type="hidden" name="action" value="decline_disposal">
+                                            <button type="submit" class="btn btn-xs btn-outline-secondary w-100 py-1 font-monospace" style="font-size: 0.72rem;" title="Decline and return to Under Maintenance"><i class="fa-solid fa-wrench"></i> REPAIR</button>
+                                        </form>
+                                        <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0 w-50">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
+                                            <input type="hidden" name="action" value="confirm_disposal">
+                                            <button type="submit" class="btn btn-xs btn-danger w-100 py-1 font-monospace" style="font-size: 0.72rem;" title="Confirm asset disposal clearance"><i class="fa-solid fa-box-archive"></i> ARCHIVE</button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <button type="button" class="btn btn-sm btn-secondary w-100" disabled><i class="fa-solid fa-ban me-1"></i> LOCKED</button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -247,17 +286,17 @@
                     <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle text-info"></i> Onboard New Fleet Asset Entry</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="POST">
+                <form method="POST" action="{% url 'dashboard_portal:logistics_dashboard' %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_vehicle">
                     <div class="modal-body bg-white">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Model / Equipment Nomenclature Name</label>
-                            <input type="text" name="model_name" class="form-control" placeholder="e.g., Toyota Hiace ALS Ambulance" required>
+                            <input type="text" id="onboard-model" name="model_name" class="form-control" placeholder="e.g., Toyota Hiace ALS Ambulance" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Plate Number / Hull ID Tag</label>
-                            <input type="text" name="plate_number" class="form-control" placeholder="e.g., PDR-ALS-02" required>
+                            <input type="text" id="onboard-plate" name="plate_number" class="form-control" placeholder="e.g., PDR-ALS-02" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Dynamic Admin Classification Category</label>
@@ -280,83 +319,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
     <script>
-
         document.addEventListener("DOMContentLoaded", function () {
-    const alertContainer = document.getElementById("floating-alert-container");
-    if (alertContainer) {
-        // Wait 3 seconds, then drop opacity and remove elements seamlessly
-        setTimeout(() => {
-            alertContainer.style.transition = "all 0.5s ease";
-            alertContainer.style.opacity = "0";
-            alertContainer.style.transform = "translateY(20px)";
-            
-            // Purge the element completely from the document tree structure 
-            setTimeout(() => {
-                alertContainer.remove();
-            }, 500); 
-        }, 3000);
-    }
-});
-
-    function submitDirectAction(actionName, vehicleId) {
-        const tempForm = document.createElement('form');
-        tempForm.method = 'POST';
-        tempForm.action = "{% url 'logistics_dashboard' %}";
-
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrfmiddlewaretoken';
-        csrfInput.value = '{{ csrf_token }}';
-        tempForm.appendChild(csrfInput);
-
-        const actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        actionInput.value = actionName;
-        tempForm.appendChild(actionInput);
-
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = 'vehicle_id';
-        idInput.value = vehicleId;
-        tempForm.appendChild(idInput);
-
-        document.body.appendChild(tempForm);
-        tempForm.submit();
-    }
-
-    function submitOnboardingForm() {
-        const modelName = document.getElementById('onboard-model').value.trim();
-        const plateNum = document.getElementById('onboard-plate').value.trim();
-
-        if (!modelName || !plateNum) {
-            alert("⚠️ REGISTRY ERROR: Both Equipment Model Name and Plate Number are required.");
-            return;
-        }
-
-        const dynamicForm = document.createElement('form');
-        dynamicForm.method = 'POST';
-        dynamicForm.action = "{% url 'logistics_dashboard' %}";
-
-        const parameters = {
-            'csrfmiddlewaretoken': '{{ csrf_token }}',
-            'action': 'add_vehicle',
-            'model_name': modelName,
-            'plate_number': plateNum,
-            'vehicle_type': 'LAND'
-        };
-
-        for (const [key, value] of Object.entries(parameters)) {
-            const inputField = document.createElement('input');
-            inputField.type = 'hidden';
-            inputField.name = key;
-            inputField.value = value;
-            dynamicForm.appendChild(inputField);
-        }
-
-        document.body.appendChild(dynamicForm);
-        dynamicForm.submit();
-    }
+            const alertContainer = document.getElementById("floating-alert-container");
+            if (alertContainer) {
+                setTimeout(() => {
+                    alertContainer.style.transition = "all 0.5s ease";
+                    alertContainer.style.opacity = "0";
+                    alertContainer.style.transform = "translateY(20px)";
+                    setTimeout(() => { alertContainer.remove(); }, 500); 
+                }, 3000);
+            }
+        });
     </script>
 </body>
 </html>

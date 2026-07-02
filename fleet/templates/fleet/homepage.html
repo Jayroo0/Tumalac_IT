@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="refresh" content="10">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDRRMO Fleet Control Center</title>
@@ -205,20 +204,20 @@
                     <i class="fa-solid fa-print"></i>
                 </button>
 
-                <a href="{% url 'homepage' %}" class="btn nav-link-btn active-orange px-3">FLEET DASHBOARD</a>
+                <!-- <a href="{% url 'homepage' %}" class="btn nav-link-btn active-orange px-3">FLEET DASHBOARD</a> -->
                 
                 {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard_portal' %}" class="btn nav-link-btn px-4">
+                    <a href="{% url 'dashboard_portal:dashboard_portal' %}" class="btn nav-link-btn px-4">
                         <i class="fa-solid fa-gauge-high me-2" style="color: var(--brand-orange)"></i> SYSTEM PORTAL
                     </a>
-                    <form action="{% url 'custom_logout' %}" method="post" class="d-inline m-0">
+                    <form action="{% url 'dashboard_portal:custom_logout' %}" method="post" class="d-inline m-0">
                         {% csrf_token %}
                         <button type="submit" class="btn nav-link-btn px-3 border-danger text-danger bg-transparent" style="border: 1px solid #dc3545 !important;">
-                            <i class="fa-solid fa-right-from-bracket me-1"></i> EXIT ({{ user.username }})
+                            <i class="fa-solid fa-right-from-bracket me-1"></i> Logout ({{ user.username }})
                         </button>
                     </form>
                 {% else %}
-                    <a href="{% url 'dashboard_portal' %}" class="btn nav-link-btn px-4" style="border-color: #38bdf8; color: #38bdf8;">
+                    <a href="{% url 'dashboard_portal:login' %}" class="btn nav-link-btn px-4" style="border-color: #38bdf8; color: #38bdf8;">
                         <i class="fa-solid fa-right-to-bracket me-2"></i> SYSTEM LOGIN
                     </a>
                 {% endif %}
@@ -367,7 +366,7 @@
                                     <tr>
                                         <td class="fw-bold text-dark">
                                             {{ vehicle.model_name }} 
-                                            <div class="small opacity-70 fw-normal text-muted mt-0.5" style="font-size: 0.8rem;">{{ vehicle.vehicle_type.name }}</div>
+                                            <div class="small opacity-70 fw-normal text-muted mt-1" style="font-size: 0.8rem;">{{ vehicle.vehicle_type.name }}</div>
                                         </td>
                                         <td><span class="code-tag-blue">{{ vehicle.plate_number }}</span></td>
                                         <td><span class="status-pill op">{{ vehicle.status }}</span></td>
@@ -409,7 +408,7 @@
                                     <tr>
                                         <td class="fw-bold text-dark">
                                             {{ craft.model_name }}
-                                            <div class="small opacity-70 fw-normal text-muted mt-0.5" style="font-size: 0.8rem;">{{ craft.vehicle_type.name }}</div>
+                                            <div class="small opacity-70 fw-normal text-muted mt-1" style="font-size: 0.8rem;">{{ craft.vehicle_type.name }}</div>
                                         </td>
                                         <td><span class="code-tag-blue">{{ craft.plate_number }}</span></td>
                                         <td><span class="status-pill op">{{ craft.status }}</span></td>
@@ -488,7 +487,7 @@
     let currentDeployedCount = parseInt(document.getElementById('deployed-counter-card')?.innerText || 0);
 
     function checkForStatusUpdates() {
-        fetch("{% url 'logistics_dashboard' %}", {
+        fetch("{% url 'dashboard_portal:logistics_dashboard' %}", {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(response => response.text())

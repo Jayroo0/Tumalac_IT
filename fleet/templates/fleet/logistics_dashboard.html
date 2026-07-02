@@ -24,7 +24,7 @@
             <span>Logistics Management Depot</span>
         </span>
         
-        <div class="d-flex gap-2">
+        <!-- <div class="d-flex gap-2">
             <button type="button" class="btn btn-sm btn-orange fw-bold px-3 text-white" 
                     id="onboard-trigger-btn"
                     data-bs-toggle="modal" 
@@ -35,7 +35,30 @@
             <a href="{% url 'dashboard_portal:login' %}" class="btn btn-sm btn-outline-light fw-bold px-3">
                 <i class="fa-solid fa-house me-1"></i> Log Out
             </a>
-        </div>
+        </div> -->
+
+        <div class="d-flex align-items-center gap-2">
+    <button type="button" class="btn btn-sm btn-orange fw-bold px-3 text-white" 
+            id="onboard-trigger-btn"
+            data-bs-toggle="modal" 
+            data-bs-target="#addVehicleModal">
+        <i class="fa-solid fa-plus me-1"></i> Onboard New Fleet Asset
+    </button>
+    
+    {% if user.is_authenticated %}
+    <span class="text-white small fw-bold bg-dark bg-opacity-25 px-2 py-1 rounded-2 border border-secondary-subtle">
+        <i class="fa-solid fa-user text-info me-1"></i> {{ user.username }}
+    </span>
+    {% endif %}
+    
+    <a href="{% url 'dashboard_portal:login' %}" class="btn btn-sm btn-outline-light fw-bold px-3">
+        <i class="fa-solid fa-house me-1"></i> Log Out
+    </a>
+</div>
+
+
+
+
     </nav>
 
     <div class="container-fluid px-4">
@@ -98,18 +121,22 @@
                                     <input type="hidden" name="action" value="set_driver">
                                     <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                                     
-                                    <select name="driver_id" class="form-select form-select-sm" style="max-width: 200px;" 
-                                            onchange="this.form.submit();"                                    
+                                    <select name="driver_id" class="form-select form-select-sm land-operator-select" style="max-width: 200px;" 
+                                            onchange="this.form.submit();"                     
                                             {% if vehicle.status == 'DEPLOYED' or vehicle.status == 'PENDING_DISPOSAL' %}disabled{% endif %}>
                                         <option value="">-- Standby / Unassigned --</option>
                                         {% if vehicle.assigned_driver %}
-                                            <option value="{{ vehicle.assigned_driver.id }}" selected>
+                                            <option value="{{ vehicle.assigned_driver.id }}" selected
+                                                    data-is-seacraft="{% if vehicle.assigned_driver.operatorprofile.crew_role == 'CAPTAIN' or 'skipper' in vehicle.assigned_driver.name.lower or 'captain' in vehicle.assigned_driver.name.lower %}true{% else %}false{% endif %}">
                                                 {{ vehicle.assigned_driver.name }} {% if vehicle.status == 'DEPLOYED' %}(In Field){% endif %}
                                             </option>
                                         {% endif %}
                                         {% for driver in drivers %}
                                             {% if vehicle.assigned_driver.id != driver.id %}
-                                                <option value="{{ driver.id }}">{{ driver.name }}</option>
+                                                <option value="{{ driver.id }}" 
+                                                        data-is-seacraft="{% if driver.operatorprofile.crew_role == 'CAPTAIN' or 'skipper' in driver.name.lower or 'captain' in driver.name.lower %}true{% else %}false{% endif %}">
+                                                    {{ driver.name }}
+                                                </option>
                                             {% endif %}
                                         {% endfor %}
                                     </select>
@@ -117,20 +144,20 @@
                             </td>
                             <td>
                                 {% if vehicle.status == 'OPERATIONAL' %}
-                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                        <input type="hidden" name="action" value="deploy_vehicle">
-                                        <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-rocket me-1"></i> DEPLOY</button>
-                                    </form>
-                                {% elif vehicle.status == 'DEPLOYED' %}
-                                    <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
-                                        <input type="hidden" name="action" value="return_vehicle">
-                                        <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fa-solid fa-arrow-rotate-left me-1"></i> RETURN</button>
-                                    </form>
-                                {% elif vehicle.status == 'MAINTENANCE' and vehicle.assigned_driver %}
+        <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+            <input type="hidden" name="action" value="deploy_vehicle">
+            <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa-solid fa-rocket me-1"></i> DEPLOY</button>
+        </form>
+    {% elif vehicle.status == 'DEPLOYED' %}
+        <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
+            <input type="hidden" name="action" value="return_vehicle">
+            <button type="submit" class="btn btn-sm btn-warning w-100"><i class="fa-solid fa-arrow-rotate-left me-1"></i> RETURN</button>
+        </form>
+    {% elif vehicle.status == 'MAINTENANCE' and vehicle.assigned_driver %}
                                     <form action="{% url 'dashboard_portal:logistics_dashboard' %}" method="post" class="m-0">
                                         {% csrf_token %}
                                         <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
@@ -208,20 +235,24 @@
                                     <input type="hidden" name="vehicle_id" value="{{ craft.id }}">
                                     
                                     <select name="driver_id" 
-                                            class="form-select form-select-sm fw-bold border-secondary-subtle" 
+                                            class="form-select form-select-sm fw-bold border-secondary-subtle sea-operator-select" 
                                             style="max-width: 200px; cursor: pointer;"
                                             onchange="this.form.submit();"
                                             {% if craft.status == 'DEPLOYED' or craft.status == 'PENDING_DISPOSAL' %}disabled{% endif %}>
                                         
                                         <option value="">-- Standby / Unassigned --</option>
                                         {% if craft.assigned_driver %}
-                                            <option value="{{ craft.assigned_driver.id }}" selected>
+                                            <option value="{{ craft.assigned_driver.id }}" selected
+                                                    data-is-seacraft="{% if craft.assigned_driver.operatorprofile.crew_role == 'CAPTAIN' or 'skipper' in craft.assigned_driver.name.lower or 'captain' in craft.assigned_driver.name.lower %}true{% else %}false{% endif %}">
                                                 👤 {{ craft.assigned_driver.name }} {% if craft.status == 'DEPLOYED' %}(In Field){% endif %}
                                             </option>
                                         {% endif %}
                                         {% for driver in drivers %}
                                             {% if craft.assigned_driver.id != driver.id %}
-                                                <option value="{{ driver.id }}">👤 {{ driver.name }}</option>
+                                                <option value="{{ driver.id }}"
+                                                        data-is-seacraft="{% if driver.operatorprofile.crew_role == 'CAPTAIN' or 'skipper' in driver.name.lower or 'captain' in driver.name.lower %}true{% else %}false{% endif %}">
+                                                    👤 {{ driver.name }}
+                                                </option>
                                             {% endif %}
                                         {% endfor %}
                                     </select>
@@ -320,6 +351,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Toast handler
             const alertContainer = document.getElementById("floating-alert-container");
             if (alertContainer) {
                 setTimeout(() => {
@@ -329,6 +361,24 @@
                     setTimeout(() => { alertContainer.remove(); }, 500); 
                 }, 3000);
             }
+
+            // FILTER: Land Tables (Hide options where data-is-seacraft="true")
+            document.querySelectorAll(".land-operator-select").forEach(select => {
+                Array.from(select.options).forEach(option => {
+                    if (option.getAttribute("data-is-seacraft") === "true") {
+                        option.remove(); // Removes the option out entirely from land view selection
+                    }
+                });
+            });
+
+            // FILTER: Maritime Tables (Hide options where data-is-seacraft="false")
+            document.querySelectorAll(".sea-operator-select").forEach(select => {
+                Array.from(select.options).forEach(option => {
+                    if (option.value !== "" && option.getAttribute("data-is-seacraft") === "false") {
+                        option.remove(); // Removes ground personnel completely out from marine choice lists
+                    }
+                });
+            });
         });
     </script>
 </body>

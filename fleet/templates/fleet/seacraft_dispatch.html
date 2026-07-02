@@ -103,18 +103,24 @@
     <nav class="navbar navbar-expand-lg shadow-sm sticky-top" style="background-color: var(--brand-blue);">
         <div class="container-fluid px-4">
             <a class="navbar-brand navbar-brand-custom d-flex align-items-center" href="#">
-                <img src="image_0.png" alt="Logo" class="me-2" style="max-height: 40px; width: auto; filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.3));">
                 PDRRMO FLEET CONTROL
             </a>
             
             <div class="d-flex align-items-center gap-3">
-                <span class="text-white-50 small d-none d-md-inline">
-                    <i class="fa-solid fa-tower-cell text-success me-1"></i> Connected to Dispatch Server
-                </span>
-                <button type="button" class="btn btn-sm btn-outline-danger px-3 text-uppercase fw-bold" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                    <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-                </button>
-            </div>
+    <span class="text-white-50 small d-none d-md-inline">
+        <i class="fa-solid fa-tower-cell text-success me-1"></i> Connected to Dispatch Server
+    </span>
+    
+    {% if user.is_authenticated %}
+    <span class="text-white small fw-bold bg-dark bg-opacity-25 px-2 py-1 rounded-2 border border-secondary-subtle">
+        <i class="fa-solid fa-user-shield text-info me-1"></i> {{ user.username }}
+    </span>
+    {% endif %}
+    
+    <button type="button" class="btn btn-sm btn-outline-danger px-3 text-uppercase fw-bold" data-bs-toggle="modal" data-bs-target="#logoutModal">
+        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+    </button>
+</div>
         </div>
     </nav>
 
@@ -449,61 +455,62 @@
         </div>
     </div>
 
+    {% if messages %}
+        <div id="alert-container" class="d-flex flex-column gap-2">
+            {% for message in messages %}
+                <div class="alert custom-alert-box p-3 border shadow-lg d-flex align-items-center justify-content-between text-dark {% if message.tags == 'success' %}border-success bg-success-subtle{% else %}border-warning bg-warning-subtle{% endif %}" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if message.tags == 'success' %}
+                            <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                        {% else %}
+                            <i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
+                        {% endif %}
+                        <span class="small fw-medium">{{ message }}</span>
+                    </div>
+                    
+                    <button type="button" onclick="this.parentElement.remove()" class="btn-close ms-3 small shadow-none" style="font-size: 0.75rem;" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %} 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-{% if messages %}
-    <div id="alert-container" class="d-flex flex-column gap-2">
-        {% for message in messages %}
-            <div class="alert custom-alert-box p-3 border shadow-lg d-flex align-items-center justify-content-between text-dark {% if message.tags == 'success' %}border-success bg-success-subtle{% else %}border-warning bg-warning-subtle{% endif %}" role="alert">
-                <div class="d-flex align-items-center gap-2">
-                    {% if message.tags == 'success' %}
-                        <i class="fa-solid fa-circle-check text-success fs-5"></i>
-                    {%   else %}
-                        <i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
-                    {% endif %}
-                    <span class="small fw-medium">{{ message }}</span>
-                </div>
-                
-                <button type="button" onclick="this.parentElement.remove()" class="btn-close ms-3 small shadow-none" style="font-size: 0.75rem;" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %} 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const alertContainer = document.getElementById("alert-container");
-        
-        if (alertContainer) {
-            setTimeout(function() {
-                alertContainer.style.opacity = '0';
-                alertContainer.style.transform = 'translate(50px, 20px)';
-                
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const alertContainer = document.getElementById("alert-container");
+            
+            if (alertContainer) {
                 setTimeout(function() {
-                    alertContainer.remove();
-                }, 500); 
-            }, 4000);
-        }
-    });
+                    alertContainer.style.opacity = '0';
+                    alertContainer.style.transform = 'translate(50px, 20px)';
+                    
+                    setTimeout(function() {
+                        alertContainer.remove();
+                    }, 500); 
+                }, 4000);
+            }
+        });
 
-    function captureDispatchDisposalRemarks(form) {
-        const id = form.querySelector('input[name="vehicle_id"]').value;
-        const targetRemarks = document.getElementById('dispatch_remarks_input_' + id);
-        
-        const feedback = prompt("🚨 ATTENTION DISPATCH: Provide structural assessment notes or justification parameters before sending this hull entry for decommissioning:");
-        
-        if (feedback === null) {
-            return false; 
+        function captureDispatchDisposalRemarks(form) {
+            const id = form.querySelector('input[name="vehicle_id"]').value;
+            const targetRemarks = document.getElementById('dispatch_remarks_input_' + id);
+            
+            const feedback = prompt("🚨 ATTENTION DISPATCH: Provide structural assessment notes or justification parameters before sending this hull entry for decommissioning:");
+            
+            if (feedback === null) {
+                return false; 
+            }
+            
+            if (feedback.trim() === "") {
+                alert("⚠️ Warning: A clear logistics remarks string value is required to authorize decommissioning actions.");
+                return false;
+            }
+            
+            targetRemarks.value = feedback;
+            return true;
         }
-        
-        if (feedback.trim() === "") {
-            alert("⚠️ Warning: A clear logistics remarks string value is required to authorize decommissioning actions.");
-            return false;
-        }
-        
-        targetRemarks.value = feedback;
-        return true;
-    }
-</script>
+    </script>
 
 </body>
 </html>

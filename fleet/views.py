@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, CHANGE, ADDITION
 from django.contrib.contenttypes.models import ContentType          
 from django.db.models import Case, When, Value, IntegerField
 from django.db.models import Q, Case, When, Value, IntegerField
-from .models import Vehicle, VehicleType, Driver
+from .models import Vehicle, VehicleType, Driver, VehicleAsset, OperatorProfile
 
 # =========================================================================
 # SYSTEM SECURITY & AUDIT LOG HELPERS
@@ -158,10 +158,26 @@ def dashboard_router(request):
     return redirect('dashboard_portal:homepage') 
 
 
+def dispatch_assignment_view(request, asset_id):
+    asset = VehicleAsset.objects.get(id=asset_id)
+    
+    # Intelligently split available operators based on what asset was selected
+    if asset.classification == 'SEA':
+        valid_operators = OperatorProfile.objects.filter(crew_role='CAPTAIN')
+        context_title = "Select Certified Seacraft Skipper"
+    else:
+        valid_operators = OperatorProfile.objects.filter(crew_role='DRIVER')
+        context_title = "Select Authorized Land Driver"
+        
+    return render(request, 'dashboard_portal/dispatch.html', {
+        'asset': asset,
+        'operators': valid_operators,
+        'title': context_title
+    })
+
 # =========================================================================
 # 3. GENERAL REPAIRMAN DASHBOARD (Land / Tech Fleet)
 # =========================================================================
-@login_required
 @login_required
 def repairman_dashboard(request):
     user = request.user
@@ -559,7 +575,12 @@ def seacraft_dispatch_view(request):
     busy_driver_ids = Vehicle.objects.filter(
         status="DEPLOYED", assigned_driver__isnull=False
     ).values_list("assigned_driver_id", flat=True)
-    available_drivers = Driver.objects.filter(is_active=True).exclude(
+    
+    # UPDATED: Added a filter to ensure only drivers with a maritime/seacraft credential pattern are queried
+    available_drivers = Driver.objects.filter(
+        is_active=True,
+        license_number__startswith="MAR-"
+    ).exclude(
         id__in=busy_driver_ids
     )
 

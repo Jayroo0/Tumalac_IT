@@ -343,8 +343,13 @@ def logistics_dashboard(request):
         assigned_driver__isnull=False
     ).values_list('assigned_driver_id', flat=True)
 
-    # 2. Fetch drivers: Include them ONLY if they are active AND not busy.
-    available_drivers = Driver.objects.filter(is_active=True).exclude(id__in=deployed_driver_ids)
+    # 2. Fetch base available active drivers who aren't busy
+    base_available_drivers = Driver.objects.filter(is_active=True).exclude(id__in=deployed_driver_ids)
+    
+    # Mirroring the seacraft dispatch credential pattern filter:
+    # Split into Land Drivers (Exclude MAR-) and Sea Drivers (Startswith MAR-)
+    available_sea_drivers = base_available_drivers.filter(license_number__startswith="MAR-")
+    available_land_drivers = base_available_drivers.exclude(license_number__startswith="MAR-")
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -449,7 +454,9 @@ def logistics_dashboard(request):
         'land_vehicles': land_vehicles, 
         'sea_crafts': sea_crafts, 
         'types': types, 
-        'drivers': available_drivers,
+        'drivers': base_available_drivers, # Preserved to avoid breaking general references
+        'land_drivers': available_land_drivers, # Added for clean segregation in land tables
+        'sea_drivers': available_sea_drivers,   # Added for mirrored MAR- filter validation in marine tables
         'pending_disposals': pending_disposals,
     }
     return render(request, 'fleet/logistics_dashboard.html', context)

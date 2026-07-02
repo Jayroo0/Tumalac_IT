@@ -5,6 +5,7 @@ from django.contrib.auth import logout,authenticate, login
 from django.contrib.admin.models import LogEntry, CHANGE, ADDITION 
 from django.contrib.contenttypes.models import ContentType          
 from django.db.models import Case, When, Value, IntegerField
+from django.db.models import Q, Case, When, Value, IntegerField
 from .models import Vehicle, VehicleType, Driver
 
 # =========================================================================
@@ -439,39 +440,150 @@ def logistics_dashboard(request):
 
 @login_required
 def seacraft_dispatch_view(request):
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        vehicle_id = request.POST.get('vehicle_id')
+    user = request.user
+
+    # 1. Simplified Authorization Check
+    # Extracted logic cleanly to avoid side effects during mid-session state evaluations
+    is_authorized = (
+        user.is_superuser
+        or user.groups.filter(name="Seacraft").exists()
+        or any(x in user.username.lower() for x in ["sea", "maritime"])
+    )
+
+    if not is_authorized:
+        messages.error(
+            request, "Access restricted to authorized Maritime Dispatchers."
+        )
+        return redirect("homepage")
+
+    # 2. POST Workflow (Actions Processing)
+    if request.method == "POST":
+        action = request.POST.get("action") or request.POST.get(
+            "action_type", "STATUS_TOGGLE"
+        )
+        vehicle_id = request.POST.get("vehicle_id")
         vehicle = get_object_or_404(Vehicle, id=vehicle_id)
 
-        # Handle Operator Assignment
-        if action == 'set_driver':
-            driver_id = request.POST.get('driver_id')
+        # ACTION: FLAG_DISPOSAL
+        if action == "FLAG_DISPOSAL":
+            remarks = request.POST.get("disposal_remarks", "").strip()
+            if not remarks:
+                messages.error(
+                    request,
+                    f"Failure: You must provide a justification remark to flag {vehicle.model_name} for disposal.",
+                )
+                return redirect("dashboard_portal:seacraft_dispatch")
+
+            vehicle.status = "PENDING_DISPOSAL"
+            vehicle.assigned_driver = None  # Detach operator on decommissioning pipeline
+            vehicle.save()
+
+            log_action_to_admin(
+                request,
+                vehicle,
+                CHANGE,
+                f"Flagged maritime asset {vehicle.model_name} for disposal. Remarks: {remarks}",
+            )
+            messages.warning(
+                request,
+                f"{vehicle.model_name} has been routed to Logistics for disposal confirmation.",
+            )
+
+        # ACTION: DEPLOY VEHICLE
+        elif action in ["DISPATCH_MISSION", "deploy_vehicle"]:
+            if vehicle.status != "OPERATIONAL":
+                messages.error(
+                    request,
+                    f"Dispatch Denied: {vehicle.model_name} must be Operational to deploy.",
+                )
+            else:
+                vehicle.status = "DEPLOYED"
+                vehicle.save()
+                log_action_to_admin(
+                    request,
+                    vehicle,
+                    CHANGE,
+                    f"Dispatched marine vessel {vehicle.model_name} to active tracking grids.",
+                )
+                messages.success(
+                    request,
+                    f"Vessel {vehicle.model_name} successfully dispatched!",
+                )
+
+        # ACTION: SET OPERATOR ASSIGNMENT
+        elif action == "set_driver":
+            driver_id = request.POST.get("driver_id")
             if driver_id:
                 driver = get_object_or_404(Driver, id=driver_id)
                 vehicle.assigned_driver = driver
+                msg = f"Operator assignment updated for {vehicle.model_name}."
             else:
-                vehicle.assigned_driver = None # Unassigned / Standby
+                vehicle.assigned_driver = None
+                msg = f"Removed operator assignment from asset {vehicle.model_name}."
+
             vehicle.save()
+            log_action_to_admin(request, vehicle, CHANGE, msg)
+            messages.success(request, msg)
 
-        # Handle Deploy Trigger Action
-        elif action == 'deploy_vehicle':
-            vehicle.status = 'DEPLOYED'
+        # ACTION: RETURN VEHICLE TO BASE
+        elif action == "return_vehicle":
+            vehicle.status = "OPERATIONAL"
             vehicle.save()
+            log_action_to_admin(
+                request,
+                vehicle,
+                CHANGE,
+                f"Returned marine vessel {vehicle.model_name} back to base.",
+            )
+            messages.success(
+                request,
+                f"{vehicle.model_name} has returned and is flagged as Operational.",
+            )
 
-        # Handle Return Trigger Action
-        elif action == 'return_vehicle':
-            vehicle.status = 'OPERATIONAL'
-            vehicle.save()
+        # ACTION: STANDARD STATUS TOGGLE
+        elif action == "STATUS_TOGGLE":
+            new_status = request.POST.get("status")
+            if new_status in ["OPERATIONAL", "MAINTENANCE"]:
+                if new_status == "MAINTENANCE" and vehicle.assigned_driver:
+                    vehicle.assigned_driver = None
 
-        # Always redirect back to reload the dashboard cleanly
-        return redirect('dashboard_portal:seacraft_dispatch')
+                vehicle.status = new_status
+                vehicle.save()
+                messages.success(
+                    request, f"Status for {vehicle.model_name} updated."
+                )
 
-    # 📤 2. RENDER THE DASHBOARD LAYOUT (GET Request)
-    sea_crafts = Vehicle.objects.filter(vehicle_type__name='MARITIME')
-    drivers = Driver.objects.filter(is_active=True) # Adjust criteria as needed
-    
-    return render(request, 'fleet/seacraft_dispatch.html', {
-        'sea_crafts': sea_crafts,
-        'drivers': drivers
-    })
+        return redirect("dashboard_portal:seacraft_dispatch")
+
+    # 3. GET Workflow (Render Data Partitioning)
+    busy_driver_ids = Vehicle.objects.filter(
+        status="DEPLOYED", assigned_driver__isnull=False
+    ).values_list("assigned_driver_id", flat=True)
+    available_drivers = Driver.objects.filter(is_active=True).exclude(
+        id__in=busy_driver_ids
+    )
+
+    sea_crafts = (
+        Vehicle.objects.filter(
+            Q(vehicle_type__name__iexact="marine")
+            | Q(vehicle_type__name__iexact="maritime")
+        )
+        .exclude(status__in=["PENDING_DISPOSAL", "ARCHIVED", "DISPOSED"])
+        .select_related("vehicle_type", "assigned_driver")
+        .order_by(
+            Case(
+                When(status="MAINTENANCE", then=Value(1)),
+                When(status="OPERATIONAL", then=Value(2)),
+                When(status="DEPLOYED", then=Value(3)),
+                default=Value(4),
+                output_field=IntegerField(),
+            ),
+            "model_name",
+        )
+    )
+
+    return render(
+        request,
+        "fleet/seacraft_dispatch.html",
+        {"sea_crafts": sea_crafts, "drivers": available_drivers},
+    )

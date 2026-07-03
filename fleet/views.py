@@ -24,7 +24,7 @@ def login_view(request):
             # FIX HERE: Redirect using the namespace:name format
        return redirect('dashboard_portal:dashboard_portal') 
     else:
-            # Handle invalid login credentials
+            messages.error(request, "ACCESS DENIED: Invalid Username or Password.")
             pass
     
     return render(request, 'fleet/login.html')
@@ -104,8 +104,10 @@ def homepage(request):
 @login_required
 def dashboard_router(request):
     user = request.user
-    username_lower = user.username.lower()
+    
+    # Grab all user group names and lowercase them for flexible matching
     user_group_names = list(user.groups.values_list('name', flat=True))
+    user_groups_lower = [g.lower() for g in user_group_names]
     
     print("\n--- PDRRMO DEBUGLOG PORTAL ---")
     print(f"Active User Logging In: {user.username}")
@@ -113,49 +115,49 @@ def dashboard_router(request):
     print(f"Detected Database Groups: {user_group_names}")
     print("-------------------------------\n")
 
-    if user.is_superuser:
+    # Superuser check
+    if user.is_superuser or 'superusers' in user_groups_lower:
         return redirect('/admin/')
 
-    # ==========================================
-    # STEP 1: RESOLVE BY EXPLICIT GROUP DESIGNATION
-    # ==========================================
+    # ==========================================================
+    # STEP 1: RESOLVE BY EXPLICIT GROUP DESIGNATION (EXACT STRINGS)
+    # ==========================================================
     group_routing_matrix = {
-        'Seacraft Dispatch': 'dashboard_portal:seacraft_dispatch',
-        'Logistics Managers': 'dashboard_portal:logistics_dashboard',
-        'Logistics':          'dashboard_portal:logistics_dashboard',
-        'Repairman':          'dashboard_portal:repairman_dashboard',
-        'Seacraft':           'dashboard_portal:seacraft_dashboard',
-        
-        # 🌟 ADMINS: Any group named exactly like below will map directly
-        'Incident Commander': 'dashboard_portal:command_center', 
+        'Seacraft Dispatch':     'dashboard_portal:seacraft_dispatch',
+        'Maritime_Tech':         'dashboard_portal:seacraft_dashboard',
+        'Logistics Officers':    'dashboard_portal:logistics_dashboard',
+        'Technicians': 'dashboard_portal:repairman_dashboard',
     }
 
-    # Evaluate matches securely based on group priority
+    # Evaluate exact case-sensitive matches first for structural integrity
     for group_name, destination_url in group_routing_matrix.items():
         if group_name in user_group_names:
             return redirect(destination_url)
 
     # ==========================================
-    # STEP 2: FALLBACK STRATEGY BY USERNAME MATCH
+    # STEP 2: FLEXIBLE GROUP NAME PATTERN MATCHING (NO USERNAMES)
     # ==========================================
-    if 'sea' in username_lower or 'maritime' in username_lower:
-        return redirect('dashboard_portal:seacraft_dashboard')
-    elif 'tech' in username_lower or 'repair' in username_lower or 'mechanic' in username_lower:
-        return redirect('dashboard_portal:repairman_dashboard')
-    elif 'log' in username_lower or 'depot' in username_lower:
-        return redirect('dashboard_portal:logistics_dashboard')
+    for group in user_groups_lower:
+        if 'sea' in group or 'craft'in group or 'dispatch' in group:
+            return redirect('dashboard_portal:seacraft_dispatch')
+        elif 'tech' in group or 'nicians' in group or 'mechanic' in group:
+            return redirect('dashboard_portal:repairman_dashboard')
+        elif 'log' in group or 'depot' in group or 'manager' in group:
+            return redirect('dashboard_portal:logistics_dashboard')
+
     
-    print(f"User {user.username} has no designated functional group. Rendering process standby state.")
-    return render(request, 'fleet/unassigned_pending.html')
-
-
     # ==========================================
     # STEP 3: SAFEST UNMAPPED ACCOUNT ESCAPE VALVE
     # ==========================================
-    # If a custom group was added but not explicitly added to code matrix yet,
-    # don't lock them out. Route them safely to the basic general homepage view.
-    messages.info(request, f"Welcome {user.username}. Accessing general operations feed.")
-    return redirect('dashboard_portal:homepage') 
+    if user_group_names:
+        messages.info(request, f"Welcome {user.username}. Accessing general operations feed.")
+        try:
+            return redirect('dashboard_portal:homepage')
+        except Exception:
+            pass 
+
+    print(f"User {user.username} has no designated functional group assignment. Rendering process standby state.")
+    return render(request, 'fleet/unassigned_pending.html')
 
 
 def dispatch_assignment_view(request, asset_id):
@@ -186,8 +188,7 @@ def repairman_dashboard(request):
 
     is_authorized = (
         user.is_superuser or 
-        'Repairman' in user_group_names or 
-        'tech' in username_lower or 'repair' in username_lower or 'mechanic' in username_lower
+        'Technicians' in user_group_names
     )
     
     if not is_authorized:
@@ -263,8 +264,8 @@ def seacraft_dashboard(request):
 
     is_authorized = (
         user.is_superuser or 
-        'Seacraft' in user_group_names or 
-        'sea' in username_lower or 'maritime' in username_lower
+        'Maritime_Tech' in user_group_names or 
+        'Tech' in username_lower or 'maritime' in username_lower
     )
 
     if not is_authorized:
@@ -333,7 +334,7 @@ def seacraft_dashboard(request):
 def logistics_dashboard(request):
     user = request.user
 
-    if not (user.is_staff or check_user_role(user, 'Logistics', ['log', 'depot'])):
+    if not (user.is_staff or check_user_role(user, 'Logistics')):
         messages.error(request, "Access restricted to Logistics Depot management accounts.")
         return redirect('homepage')
 
@@ -469,7 +470,7 @@ def seacraft_dispatch_view(request):
     # Extracted logic cleanly to avoid side effects during mid-session state evaluations
     is_authorized = (
         user.is_superuser
-        or user.groups.filter(name="Seacraft").exists()
+        or user.groups.filter(name="Seacraft Dispatch").exists()
         or any(x in user.username.lower() for x in ["sea", "maritime"])
     )
 

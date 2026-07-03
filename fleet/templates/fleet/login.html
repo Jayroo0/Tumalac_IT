@@ -32,6 +32,19 @@
             max-width: 440px;
         }
 
+        /* Stark Command Center Alert Banner with smooth transition support */
+        .alert-command {
+            background-color: #ffffff;
+            border: 2px solid var(--brand-orange);
+            color: var(--brand-orange);
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 0px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: opacity 0.5s ease-out;
+        }
+
         /* Standardized Form Inputs with High-Contrast Sharp Outlines */
         .form-control {
             background-color: #ffffff;
@@ -118,6 +131,17 @@
             <p class="text-uppercase text-muted fw-bold small m-0 mt-2" style="letter-spacing: 1.5px; font-size: 0.7rem;">Verified Identity Credentials Required</p>
         </div>
         
+        {% if messages %}
+            <div class="messages mb-4" id="alert-container">
+                {% for message in messages %}
+                    <div class="alert alert-command p-3 fade show d-flex align-items-center" role="alert">
+                        <span class="me-2">⚠️</span>
+                        <div>{{ message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         <form method="post" action="{% url 'dashboard_portal:login' %}">
             {% csrf_token %}
             
@@ -133,7 +157,7 @@
             
             <div class="d-grid gap-2 pt-2">
                 <button type="submit" class="btn btn-command">Authenticate</button>
-                <a href="{% url 'dashboard_portal:homepage' %}">
+                <a href="{% url 'dashboard_portal:homepage' %}" class="btn-public-hub text-center">
                     Exit Gateway Portal
                 </a>
             </div>
@@ -146,5 +170,24 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const alertContainer = document.getElementById("alert-container");
+            if (alertContainer) {
+                setTimeout(function() {
+                    // Triggers Bootstrap smooth fade-out
+                    const alerts = alertContainer.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        alert.classList.remove('show');
+                        alert.style.opacity = '0';
+                    });
+                    
+                    // Entirely removes element container from DOM structure after transition wraps up
+                    setTimeout(() => { alertContainer.remove(); }, 500);
+                }, 3000); // 3000 milliseconds = 3 seconds
+            }
+        });
+    </script>
 </body>
 </html>
